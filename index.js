@@ -7,7 +7,7 @@ app.use(express.static('public'));
 require("./functions/startApi").run(app);
 
 async function start() {
-    //await require("./functionsStore/setupDb").run();
+    await require("./functions/dataBase/createConnection").run(app);
 
     //app.bot = require("./discordBot/index").run();
     const port = config.port;
