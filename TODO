@@ -1,0 +1,5 @@
+# ADD TABLES
+- log_tickets
+- ticketsMessages
+- ticketFiles
+- logs_ticketFiles
