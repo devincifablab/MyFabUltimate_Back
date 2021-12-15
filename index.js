@@ -1,29 +1,32 @@
 const express = require('express');
-const swaggerUI = require("swagger-ui-express");
-const swaggerJsDoc = require("swagger-jsdoc");
 const app = express();
 const config = require(__dirname + "/config.json");
 
 app.use(express.static('public'));
 
-const options = {
-    definition: {
-        openapi: "3.0.0",
-        info: {
-            title: "DeVinci FabLab API",
-            version: "1.0.0",
-            description: "Hello and welcome to the API documentation of the DeVinci FabLab Association website.\n" +
-                "If you are not a developer of the site or a member of the association, you have nothing to do on this page (I know you will stay anyway). Congratulations for finding this page by the way.\n",
+if(config.showSwagger){
+    const swaggerUI = require("swagger-ui-express");
+    const swaggerJsDoc = require("swagger-jsdoc");
+    const options = {
+        definition: {
+            openapi: "3.0.0",
+            info: {
+                title: "DeVinci FabLab API",
+                version: "1.0.0",
+                description: "Hello and welcome to the API documentation of the DeVinci FabLab Association website.\n" +
+                    "If you are not a developer of the site or a member of the association, you have nothing to do on this page (I know you will stay anyway). Congratulations for finding this page by the way.\n",
+            },
+            servers: [{
+                url: config.url + config.port + "/api/",
+            }, ],
         },
-        servers: [{
-            url: config.url + config.port + "/api/",
-        }, ],
-    },
-    apis: ["./api/*.js"],
-};
+        apis: ["./api/*.js"],
+    };
+    
+    const specs = swaggerJsDoc(options);
 
-const specs = swaggerJsDoc(options);
-app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
+    app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
+} 
 
 require("./functions/startApi").run(app);
 
