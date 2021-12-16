@@ -109,7 +109,6 @@
 
 module.exports.getAll = async (req, res, app) => {
     const dvflcookie = req.headers.dvflcookie;
-    console.log(dvflcookie);
     // unauthenticated user
     if (!dvflcookie) {
         res.sendStatus(401);
@@ -120,7 +119,7 @@ module.exports.getAll = async (req, res, app) => {
         res.sendStatus(403);
         return;
     }
-    const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS `firstName`, `v_lastName` AS `lastName`, `v_email` AS `email` FROM `users`', []);
+    const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS `firstName`, `v_lastName` AS `lastName`, `v_email` AS `email` FROM `users` WHERE `b_deleted` = 0 AND `b_visible` = 1', []);
     if (dbRes[0]) {
         console.log(dbRes[0]);
     }
@@ -184,7 +183,7 @@ module.exports.get = async (req, res, app) => {
         res.sendStatus(400);
         return;
     }
-    const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0', [idUserTarget, idUserTarget]);
+    const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [idUserTarget, idUserTarget]);
     // The sql request has an error
     if (dbRes[0]) {
         console.log(dbRes[0]);
@@ -258,14 +257,13 @@ module.exports.delete = async (req, res, app) => {
         res.sendStatus(400);
         return;
     }
-    const dbRes = await app.executeQuery(app.db, 'UPDATE `users` SET `b_deleted` = "1" WHERE `i_id` = ?;', [idUserTarget]);
+    const dbRes = await app.executeQuery(app.db, 'UPDATE `users` SET `b_deleted` = "1", `dt_creationdate` = CURRENT_TIMESTAMP WHERE `i_id` = ?;', [idUserTarget]);
     // The sql request has an error
     if (dbRes[0]) {
         console.log(dbRes[0]);
         res.sendStatus(500);
         return;
     }
-    console.log(dbRes[1].changedRows);
     // The response has no value
     if (dbRes[1].changedRows < 1) {
         res.sendStatus(204);
