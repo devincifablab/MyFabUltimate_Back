@@ -39,6 +39,15 @@ async function runFolder(path, app) {
                         }
                     })
                 }
+                if (route.putMe != null) {
+                    app.put(path + "/" + fileSplited[0], async function (req, res) {
+                        try {
+                            route.putMe(req, res, app);
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    })
+                }
                 if (route.put != null) {
                     const routeOptions = route.option ? route.option.put ? route.option.put : "" : "";
                     app.put(path + "/" + fileSplited[0] + routeOptions, async function (req, res) {
