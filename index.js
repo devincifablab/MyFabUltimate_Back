@@ -45,6 +45,7 @@ async function start() {
     app.listen(port);
     console.log();
     console.log("Server is now listening port " + port);
+    if (config.showSwagger) console.log("Swagger documentation available here : " + config.url + config.port + "/api-docs");
 }
 
 start()
