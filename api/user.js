@@ -1,0 +1,286 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: "integer"
+ *           format: "int64"
+ *           description: Id of the user
+ *         firstName:
+ *           type: "string"
+ *           description: First name of the user
+ *         lastName:
+ *           type: "string"
+ *           description: Last name of the user
+ *         email:
+ *           type: "string"
+ *           description: Email of the user
+ *         creationDate:
+ *           type: "string"
+ *           format: "date-time"
+ *           description: "Date when the user was created"
+ *         discordid:
+ *           type: "string"
+ *           description: "Discord id when the user was created, if seted"
+ *         language:
+ *           type: "string"
+ *           description: "The language selected by the user. By default the language is 'fr'"
+ *         acceptedRule:
+ *           type: "boolean"
+ *           description: "If the user has accepted the general conditions of use"
+ *         mailValidated:
+ *           type: "boolean"
+ *           description: "If the user has validated his email address"
+ *       example:
+ *         id: 212
+ *         firstName: John
+ *         lastName: Doe
+ *         email: john.doe@mailcom
+ *         creationDate: 2021-12-16T09:31:38.000Z
+ *         discordid: 012345678901
+ *         language: fr
+ *         acceptedRule: 1
+ *         mailValidated: 1
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ShortUser:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: "integer"
+ *           format: "int64"
+ *           description: Id of the user
+ *         firstName:
+ *           type: "string"
+ *           description: First name of the user
+ *         lastName:
+ *           type: "string"
+ *           description: Last name of the user
+ *         email:
+ *           type: "string"
+ *           description: Email of the user
+ *       example:
+ *         id: 212
+ *         firstName: John
+ *         lastName: Doe
+ *         email: john.doe@mailcom
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: User
+ *   description: Everything about users
+ */
+
+/**
+ * @swagger
+ * /user:
+ *   get:
+ *     summary: Get all users data
+ *     tags: [User]
+ *     parameters:
+ *     - name: dvflCookie
+ *       in: header
+ *       description: Cookie of the user making the request
+ *       required: true
+ *       type: string
+ *     responses:
+ *       "200":
+ *         description: "Get all users data. Warning the returned users do not contain all the data"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: "array"
+ *               items:
+ *                 $ref: '#/components/schemas/ShortUser'
+ *       401:
+ *        description: "The user is unauthenticated"
+ *       403:
+ *        description: "The user is not allowed"
+ */
+
+module.exports.getAll = async (req, res, app) => {
+    const dvflcookie = req.headers.dvflcookie;
+    console.log(dvflcookie);
+    // unauthenticated user
+    if (!dvflcookie) {
+        res.sendStatus(401);
+        return;
+    }
+    // if the user is not allowed
+    if (false) {
+        res.sendStatus(403);
+        return;
+    }
+    const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS `firstName`, `v_lastName` AS `lastName`, `v_email` AS `email` FROM `users`', []);
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+    }
+    res.json(dbRes[1])
+}
+
+/**
+ * @swagger
+ * /user/{id}:
+ *   get:
+ *     summary: Get one user data
+ *     tags: [User]
+ *     consumes:
+ *     - "application/x-www-form-urlencoded"
+ *     parameters:
+ *     - name: "id"
+ *       in: "path"
+ *       description: "Id of user"
+ *       required: true
+ *       type: "integer"
+ *       format: "int64"
+ *     - name: dvflCookie
+ *       in: header
+ *       description: Cookie of the user making the request
+ *       required: true
+ *       type: string
+ *     responses:
+ *       200:
+ *         description: Get one user data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       204:
+ *        description: "The request has no content"
+ *       400:
+ *        description: "id is not valid"
+ *       401:
+ *        description: "The user is unauthenticated"
+ *       403:
+ *        description: "The user is not allowed"
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+module.exports.get = async (req, res, app) => {
+    const dvflcookie = req.headers.dvflcookie;
+    const idUserTarget = req.params.id;
+    // unauthenticated user
+    if (!dvflcookie) {
+        res.sendStatus(401);
+        return;
+    }
+    // if the user is not allowed
+    if (false) {
+        res.sendStatus(403);
+        return;
+    }
+    // Id is not a number
+    if (isNaN(idUserTarget)) {
+        res.sendStatus(400);
+        return;
+    }
+    const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0', [idUserTarget, idUserTarget]);
+    // The sql request has an error
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        res.sendStatus(500);
+        return;
+    }
+    // The response has no value
+    if (dbRes[1].length < 1) {
+        res.sendStatus(204);
+        return;
+    }
+    // The response has multiples values
+    if (dbRes[1].length > 1) {
+        console.log("Select one user as multiple response");
+        res.sendStatus(500);
+        return;
+    }
+    res.json(dbRes[1][0]);
+}
+
+/**
+ * @swagger
+ * /user/{id}:
+ *   delete:
+ *     summary: Delete one user
+ *     tags: [User]
+ *     consumes:
+ *     - "application/x-www-form-urlencoded"
+ *     parameters:
+ *     - name: "id"
+ *       in: "path"
+ *       description: "Id of user"
+ *       required: true
+ *       type: "integer"
+ *       format: "int64"
+ *     - name: dvflCookie
+ *       in: header
+ *       description: Cookie of the user making the request
+ *       required: true
+ *       type: string
+ *     responses:
+ *       200:
+ *        description: "Suppression succed"
+ *       204:
+ *        description: "No user deleted"
+ *       400:
+ *        description: "id is not valid"
+ *       401:
+ *        description: "The user is unauthenticated"
+ *       403:
+ *        description: "The user is not allowed"
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+module.exports.delete = async (req, res, app) => {
+    const dvflcookie = req.headers.dvflcookie;
+    const idUserTarget = req.params.id;
+    // unauthenticated user
+    if (!dvflcookie) {
+        res.sendStatus(401);
+        return;
+    }
+    // if the user is not allowed
+    if (false) {
+        res.sendStatus(403);
+        return;
+    }
+    // Id is not a number
+    if (isNaN(idUserTarget)) {
+        res.sendStatus(400);
+        return;
+    }
+    const dbRes = await app.executeQuery(app.db, 'UPDATE `users` SET `b_deleted` = "1" WHERE `i_id` = ?;', [idUserTarget]);
+    // The sql request has an error
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        res.sendStatus(500);
+        return;
+    }
+    console.log(dbRes[1].changedRows);
+    // The response has no value
+    if (dbRes[1].changedRows < 1) {
+        res.sendStatus(204);
+        return;
+    }
+    // The response has multiples values
+    if (dbRes[1].changedRows > 1) {
+        console.log("Delete one user as multiple deletions");
+        res.sendStatus(500);
+        return;
+    }
+    res.sendStatus(200);
+}
+
+module.exports.option = {
+    "get": "/:id",
+    "delete": "/:id"
+}

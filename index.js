@@ -1,10 +1,15 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
 const config = require(__dirname + "/config.json");
 
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+app.use(bodyParser.json());
 app.use(express.static('public'));
 
-if(config.showSwagger){
+if (config.showSwagger) {
     const swaggerUI = require("swagger-ui-express");
     const swaggerJsDoc = require("swagger-jsdoc");
     const options = {
@@ -20,13 +25,13 @@ if(config.showSwagger){
                 url: config.url + config.port + "/api/",
             }, ],
         },
-        apis: ["./api/*.js"],
+        apis: ["./api/*.js", "./api/*/*.js", "./api/*/*/*.js"],
     };
-    
+
     const specs = swaggerJsDoc(options);
 
     app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
-} 
+}
 
 require("./functions/startApi").run(app);
 
