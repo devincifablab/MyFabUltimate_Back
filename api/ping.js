@@ -1,18 +1,4 @@
 /**
- * @swagger
- * components:
- *   schemas:
- *     Ping:
- *       type: object
- *       properties:
- *         result:
- *           type: string
- *           description: The response of the server
- *       example:
- *         result: pong
- */
-
-/**
   * @swagger
   * tags:
   *   name: Ping
@@ -31,7 +17,12 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Ping'
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *               example:
+ *                 result: pong
  */
 
 
@@ -53,7 +44,12 @@ module.exports.get = (req, res, app) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Ping'
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *               example:
+ *                 result: pong
  */
 
 module.exports.post = (req, res, app) => {
@@ -74,7 +70,12 @@ module.exports.post = (req, res, app) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Ping'
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *               example:
+ *                 result: pong
  */
 
 module.exports.put = (req, res, app) => {
@@ -95,7 +96,12 @@ module.exports.put = (req, res, app) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Ping'
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *               example:
+ *                 result: pong
  */
 
 module.exports.delete = (req, res, app) => {
