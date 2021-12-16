@@ -105,6 +105,8 @@
  *        description: "The user is unauthenticated"
  *       403:
  *        description: "The user is not allowed"
+ *       500:
+ *        description: "Internal error with the request"
  */
 
 module.exports.getAll = async (req, res, app) => {
@@ -122,6 +124,8 @@ module.exports.getAll = async (req, res, app) => {
     const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS `firstName`, `v_lastName` AS `lastName`, `v_email` AS `email` FROM `users` WHERE `b_deleted` = 0 AND `b_visible` = 1', []);
     if (dbRes[0]) {
         console.log(dbRes[0]);
+        res.sendStatus(500);
+        return;
     }
     res.json(dbRes[1])
 }
