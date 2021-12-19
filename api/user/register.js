@@ -7,6 +7,17 @@ const validateEmail = (email) => {
         );
 };
 
+function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() *
+            charactersLength));
+    }
+    return result;
+}
+
 
 /**
  * @swagger
@@ -64,13 +75,42 @@ module.exports.post = async (req, res, app) => {
         const resInsertNewAccount = await app.executeQuery(app.db, "INSERT INTO `users` (`v_firstName`, `v_lastName`, `v_email`, `v_password`, `v_language`) VALUES (?, ?, ?, ?, ?);", [req.body.firstName, req.body.lastName, req.body.email, sha256(req.body.password), language]);
         // Error with the sql request
         if (resInsertNewAccount[0] || resInsertNewAccount[1].affectedRows !== 1) {
-            console.log(dbRes[0]);
+            console.log(resInsertNewAccount[0]);
+            res.sendStatus(500);
+            return;
+        }
+        const resGetIdUserInserted = await app.executeQuery(app.db, "SELECT LAST_INSERT_ID() AS 'id';", []);
+        // Error with the sql request
+        if (resGetIdUserInserted[0] || resGetIdUserInserted[1].length !== 1 || resGetIdUserInserted[1][0].id === 0) {
+            console.log(resGetIdUserInserted[0]);
+            res.sendStatus(500);
+            return;
+        }
+        const idNewUser = resGetIdUserInserted[1][0].id;
+
+        let tocken = null;
+        while (tocken == null) {
+            const testTocken = makeid(10);
+            const resTestTocken = await app.executeQuery(app.db, "SELECT 1 FROM `mailtocken` WHERE v_value = ?", [testTocken]);
+            if (resTestTocken[0]) {
+                console.log(resTestTocken[0]);
+                res.sendStatus(500);
+                return;
+            }
+            if (resTestTocken[1]) tocken = testTocken;
+        }
+
+        const sendMail = req.body.sendMail == null ? true : req.body.sendMail;
+
+        const resInsertTocken = await app.executeQuery(app.db, "INSERT INTO `mailtocken` (`i_idUser`, `v_value`, `b_mailSend`) VALUES (?, ?, ?);", [idNewUser, tocken, sendMail ? "1" : "0"]);
+        if (resInsertTocken[0]) {
+            console.log(resInsertTocken[0]);
             res.sendStatus(500);
             return;
         }
 
         //Send validation email to the user
-        if (req.body.sendMail == null ? true : req.body.sendMail) {
+        if (sendMail) {
             console.log("Mail send");
         }
 
