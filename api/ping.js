@@ -1,9 +1,9 @@
 /**
-  * @swagger
-  * tags:
-  *   name: Ping
-  *   description: Test to detect if the server is responding correctly
-  */
+ * @swagger
+ * tags:
+ *   name: Ping
+ *   description: Test to detect if the server is responding correctly
+ */
 
 /**
  * @swagger
@@ -26,9 +26,16 @@
  */
 
 
-module.exports.get = (req, res, app) => {
-    res.json({
-        result: "pong"
+module.exports.get = (app) => {
+    app.get("/api/ping/", async function (req, res) {
+        try {
+            res.json({
+                result: "pong"
+            })
+        } catch (error) {
+            console.log("ERROR: GET /api/ping/");
+            console.log(error);
+        }
     })
 }
 
@@ -52,9 +59,16 @@ module.exports.get = (req, res, app) => {
  *                 result: pong
  */
 
-module.exports.post = (req, res, app) => {
-    res.json({
-        result: "pong"
+module.exports.post = (app) => {
+    app.post("/api/ping/", async function (req, res) {
+        try {
+            res.json({
+                result: "pong"
+            })
+        } catch (error) {
+            console.log("ERROR: POST /api/ping/");
+            console.log(error);
+        }
     })
 }
 
@@ -78,9 +92,16 @@ module.exports.post = (req, res, app) => {
  *                 result: pong
  */
 
-module.exports.put = (req, res, app) => {
-    res.json({
-        result: "pong"
+module.exports.put = (app) => {
+    app.put("/api/ping/", async function (req, res) {
+        try {
+            res.json({
+                result: "pong"
+            })
+        } catch (error) {
+            console.log("ERROR: PUT /api/ping/");
+            console.log(error);
+        }
     })
 }
 
@@ -104,8 +125,15 @@ module.exports.put = (req, res, app) => {
  *                 result: pong
  */
 
-module.exports.delete = (req, res, app) => {
-    res.json({
-        result: "pong"
+module.exports.delete = (app) => {
+    app.delete("/api/ping/", async function (req, res) {
+        try {
+            res.json({
+                result: "pong"
+            })
+        } catch (error) {
+            console.log("ERROR: DELETE /api/ping/");
+            console.log(error);
+        }
     })
 }

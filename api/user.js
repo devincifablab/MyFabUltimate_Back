@@ -109,25 +109,32 @@
  *        description: "Internal error with the request"
  */
 
-module.exports.getAll = async (req, res, app) => {
-    const dvflcookie = req.headers.dvflcookie;
-    // unauthenticated user
-    if (!dvflcookie) {
-        res.sendStatus(401);
-        return;
-    }
-    // if the user is not allowed
-    if (false) {
-        res.sendStatus(403);
-        return;
-    }
-    const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS `firstName`, `v_lastName` AS `lastName`, `v_email` AS `email` FROM `users` WHERE `b_deleted` = 0 AND `b_visible` = 1', []);
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        res.sendStatus(500);
-        return;
-    }
-    res.json(dbRes[1])
+module.exports.getAll = async (app) => {
+    app.get("/api/user/", async function (req, res) {
+        try {
+            const dvflcookie = req.headers.dvflcookie;
+            // unauthenticated user
+            if (!dvflcookie) {
+                res.sendStatus(401);
+                return;
+            }
+            // if the user is not allowed
+            if (false) {
+                res.sendStatus(403);
+                return;
+            }
+            const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS `firstName`, `v_lastName` AS `lastName`, `v_email` AS `email` FROM `users` WHERE `b_deleted` = 0 AND `b_visible` = 1', []);
+            if (dbRes[0]) {
+                console.log(dbRes[0]);
+                res.sendStatus(500);
+                return;
+            }
+            res.json(dbRes[1])
+        } catch (error) {
+            console.log("ERROR: GET /api/user/");
+            console.log(error);
+        }
+    })
 }
 
 /**
@@ -169,43 +176,50 @@ module.exports.getAll = async (req, res, app) => {
  *        description: "Internal error with the request"
  */
 
-module.exports.get = async (req, res, app) => {
-    const dvflcookie = req.headers.dvflcookie;
-    const idUserTarget = req.params.id;
-    // unauthenticated user
-    if (!dvflcookie) {
-        res.sendStatus(401);
-        return;
-    }
-    // if the user is not allowed
-    if (false) {
-        res.sendStatus(403);
-        return;
-    }
-    // Id is not a number
-    if (isNaN(idUserTarget)) {
-        res.sendStatus(400);
-        return;
-    }
-    const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [idUserTarget, idUserTarget]);
-    // The sql request has an error
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        res.sendStatus(500);
-        return;
-    }
-    // The response has no value
-    if (dbRes[1].length < 1) {
-        res.sendStatus(204);
-        return;
-    }
-    // The response has multiples values
-    if (dbRes[1].length > 1) {
-        console.log("Select one user as multiple response");
-        res.sendStatus(500);
-        return;
-    }
-    res.json(dbRes[1][0]);
+module.exports.get = async (app) => {
+    app.get("/api/user/:id", async function (req, res) {
+        try {
+            const dvflcookie = req.headers.dvflcookie;
+            const idUserTarget = req.params.id;
+            // unauthenticated user
+            if (!dvflcookie) {
+                res.sendStatus(401);
+                return;
+            }
+            // if the user is not allowed
+            if (false) {
+                res.sendStatus(403);
+                return;
+            }
+            // Id is not a number
+            if (isNaN(idUserTarget)) {
+                res.sendStatus(400);
+                return;
+            }
+            const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [idUserTarget, idUserTarget]);
+            // The sql request has an error
+            if (dbRes[0]) {
+                console.log(dbRes[0]);
+                res.sendStatus(500);
+                return;
+            }
+            // The response has no value
+            if (dbRes[1].length < 1) {
+                res.sendStatus(204);
+                return;
+            }
+            // The response has multiples values
+            if (dbRes[1].length > 1) {
+                console.log("Select one user as multiple response");
+                res.sendStatus(500);
+                return;
+            }
+            res.json(dbRes[1][0]);
+        } catch (error) {
+            console.log("ERROR: GET /api/user/:id");
+            console.log(error);
+        }
+    })
 }
 
 /**
@@ -243,46 +257,48 @@ module.exports.get = async (req, res, app) => {
  *        description: "Internal error with the request"
  */
 
-module.exports.delete = async (req, res, app) => {
-    const dvflcookie = req.headers.dvflcookie;
-    const idUserTarget = req.params.id;
-    // unauthenticated user
-    if (!dvflcookie) {
-        res.sendStatus(401);
-        return;
-    }
-    // if the user is not allowed
-    if (false) {
-        res.sendStatus(403);
-        return;
-    }
-    // Id is not a number
-    if (isNaN(idUserTarget)) {
-        res.sendStatus(400);
-        return;
-    }
-    const dbRes = await app.executeQuery(app.db, 'UPDATE `users` SET `b_deleted` = "1", `dt_creationdate` = CURRENT_TIMESTAMP WHERE `i_id` = ?;', [idUserTarget]);
-    // The sql request has an error
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        res.sendStatus(500);
-        return;
-    }
-    // The response has no value
-    if (dbRes[1].changedRows < 1) {
-        res.sendStatus(204);
-        return;
-    }
-    // The response has multiples values
-    if (dbRes[1].changedRows > 1) {
-        console.log("Delete one user as multiple deletions");
-        res.sendStatus(500);
-        return;
-    }
-    res.sendStatus(200);
-}
-
-module.exports.option = {
-    "get": "/:id",
-    "delete": "/:id"
+module.exports.delete = async (app) => {
+    app.delete("/api/user/:id", async function (req, res) {
+        try {
+            const dvflcookie = req.headers.dvflcookie;
+            const idUserTarget = req.params.id;
+            // unauthenticated user
+            if (!dvflcookie) {
+                res.sendStatus(401);
+                return;
+            }
+            // if the user is not allowed
+            if (false) {
+                res.sendStatus(403);
+                return;
+            }
+            // Id is not a number
+            if (isNaN(idUserTarget)) {
+                res.sendStatus(400);
+                return;
+            }
+            const dbRes = await app.executeQuery(app.db, 'UPDATE `users` SET `b_deleted` = "1", `dt_creationdate` = CURRENT_TIMESTAMP WHERE `i_id` = ?;', [idUserTarget]);
+            // The sql request has an error
+            if (dbRes[0]) {
+                console.log(dbRes[0]);
+                res.sendStatus(500);
+                return;
+            }
+            // The response has no value
+            if (dbRes[1].changedRows < 1) {
+                res.sendStatus(204);
+                return;
+            }
+            // The response has multiples values
+            if (dbRes[1].changedRows > 1) {
+                console.log("Delete one user as multiple deletions");
+                res.sendStatus(500);
+                return;
+            }
+            res.sendStatus(200);
+        } catch (error) {
+            console.log("ERROR: DELETE /api/user/:id");
+            console.log(error);
+        }
+    })
 }

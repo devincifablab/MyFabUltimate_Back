@@ -10,6 +10,19 @@ async function runFolder(path, app) {
             if (fileSplited[fileSplited.length - 1] !== "js") console.log("Unexpected file type : " + file);
             else {
                 const route = require(__dirname + "/.." + filePath);
+                const keys = Object.keys(route);
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
+                    try {
+                        route[key](app);
+                    } catch (error) {
+                        //Error for api start
+                        console.log("Error for api start");
+                        console.log(error);
+                    }
+                }
+
+                /*
                 if (route.getAll != null) {
                     app.get(path + "/" + fileSplited[0], async function (req, res) {
                         try {
@@ -68,6 +81,7 @@ async function runFolder(path, app) {
                         }
                     })
                 }
+                */
             }
         }
     });
