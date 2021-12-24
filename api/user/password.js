@@ -58,7 +58,11 @@ module.exports.putMe = async (app) => {
                 res.sendStatus(400);
                 return;
             }
-            const userTarget = 1; // Set to 1 temporarily
+            const userTarget = app.cookiesList[dvflcookie];
+            if (!userTarget) {
+                res.sendStatus(401);
+                return;
+            }
             const dbRes = await app.executeQuery(app.db, "UPDATE `users` SET `v_password` = ? WHERE `i_id` = ? AND `v_password` = ?;", [sha256(req.body.newPassword), userTarget, sha256(req.body.actualPassword)]);
             // Error with the sql request
             if (dbRes[0]) {
@@ -143,9 +147,20 @@ module.exports.put = async (app) => {
                 res.sendStatus(401);
                 return;
             }
+            const userTarget = app.cookiesList[dvflcookie];
+            if (!userTarget) {
+                res.sendStatus(401);
+                return;
+            }
             // if the user is not allowed
-            if (false) {
-                res.sendStatus(403);
+            const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
+            if (!authViewResult) {
+                res.sendStatus(401);
+                return;
+            }
+            const authManageUsersResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "manageUser");
+            if (!authManageUsersResult) {
+                res.sendStatus(401);
                 return;
             }
             // The body does not have all the necessary field or id is not a number

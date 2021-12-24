@@ -81,7 +81,16 @@ module.exports.get = async (app) => {
             }
             const userId = req.params.idUser;
 
-            const dvflcookie = req.headers.dvflcookie;
+            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
+            if (!userIdAgent) {
+                res.sendStatus(401);
+                return;
+            }
+            const authResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
+            if (!authResult) {
+                res.sendStatus(401);
+                return;
+            }
 
             const resTestIfCorrelationExist = await app.executeQuery(app.db, "SELECT gd_roles.i_id AS 'id', gd_roles.v_name AS 'name', gd_roles.v_description AS 'description',gd_roles.v_color AS 'color' FROM `rolescorrelation` INNER JOIN gd_roles ON rolescorrelation.i_idRole = gd_roles.i_id WHERE rolescorrelation.i_idUser = ?", [userId]);
             // Error with the sql request
@@ -142,8 +151,11 @@ module.exports.getMe = async (app) => {
                 return;
             }
 
-            const dvflcookie = req.headers.dvflcookie;
-            const userId = 1; // Set temporaly
+            const userId = app.cookiesList[req.headers.dvflcookie];
+            if (!userId) {
+                res.sendStatus(401);
+                return;
+            }
 
             const resTestIfCorrelationExist = await app.executeQuery(app.db, "SELECT gd_roles.i_id AS 'id', gd_roles.v_name AS 'name', gd_roles.v_description AS 'description',gd_roles.v_color AS 'color' FROM `rolescorrelation` INNER JOIN gd_roles ON rolescorrelation.i_idRole = gd_roles.i_id WHERE rolescorrelation.i_idUser = ?", [userId]);
             // Error with the sql request
@@ -191,6 +203,8 @@ module.exports.getMe = async (app) => {
  *       400:
  *        description: "The body does not have all the necessary field"
  *       401:
+ *        description: "The user is not authorized"
+ *       409:
  *        description: "This correlation already exist"
  *       500:
  *        description: "Internal error with the request or unknown role or user"
@@ -204,10 +218,29 @@ module.exports.post = async (app) => {
                 res.sendStatus(400);
                 return;
             }
-            const dvflcookie = req.headers.dvflcookie;
+
+            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
+            if (!userIdAgent) {
+                res.sendStatus(401);
+                return;
+            }
+            const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
+            if (!authViewResult) {
+                res.sendStatus(401);
+                return;
+            }
+            const authChangeRoleResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "changeUserRole");
+            if (!authChangeRoleResult) {
+                res.sendStatus(401);
+                return;
+            }
 
             const userId = req.params.idUser;
             const roleId = req.params.idRole;
+            if (userId == roleId) {
+                res.sendStatus(401);
+                return;
+            }
 
             const resTestIfCorrelationExist = await app.executeQuery(app.db, "SELECT 1 FROM `rolescorrelation` WHERE i_idUser = ? AND i_idRole = ?;", [userId, roleId]);
             // Error with the sql request
@@ -217,8 +250,27 @@ module.exports.post = async (app) => {
                 return;
             }
             if (resTestIfCorrelationExist[1].length !== 0) {
+                res.sendStatus(409);
+                return;
+            }
+
+            const resIsProtected = await app.executeQuery(app.db, "SELECT b_isProtected AS 'isProtected' FROM `gd_roles` WHERE i_id = ? ;", [roleId]);
+            // Error with the sql request
+            if (resIsProtected[0]) {
+                console.log(resIsProtected[0]);
+                res.sendStatus(500);
+                return;
+            }
+            if (resIsProtected[1].length !== 1) {
                 res.sendStatus(401);
                 return;
+            }
+            if (resIsProtected[1][0].isProtected) {
+                const authChangeProtectedRoleResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "changeUserProtectedRole");
+                if (!authChangeProtectedRoleResult) {
+                    res.sendStatus(401);
+                    return;
+                }
             }
 
             const resInsertNewRoleCorrelation = await app.executeQuery(app.db, "INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, ?);", [userId, roleId]);
@@ -283,10 +335,29 @@ module.exports.delete = async (app) => {
                 res.sendStatus(400);
                 return;
             }
-            const dvflcookie = req.headers.dvflcookie;
+
+            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
+            if (!userIdAgent) {
+                res.sendStatus(401);
+                return;
+            }
+            const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
+            if (!authViewResult) {
+                res.sendStatus(401);
+                return;
+            }
+            const authChangeRoleResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "manageUser");
+            if (!authChangeRoleResult) {
+                res.sendStatus(401);
+                return;
+            }
 
             const userId = req.params.idUser;
             const roleId = req.params.idRole;
+            if (userId == roleId) {
+                res.sendStatus(401);
+                return;
+            }
 
             const resTestIfCorrelationExist = await app.executeQuery(app.db, "SELECT i_id AS 'id' FROM `rolescorrelation` WHERE i_idUser = ? AND i_idRole = ?;", [userId, roleId]);
             // Error with the sql request
@@ -298,6 +369,27 @@ module.exports.delete = async (app) => {
             if (resTestIfCorrelationExist[1].length === 0) {
                 res.sendStatus(409);
                 return;
+            }
+
+
+            const resIsProtected = await app.executeQuery(app.db, "SELECT b_isProtected AS 'isProtected' FROM `gd_roles` WHERE i_id = ? ;", [roleId]);
+            // Error with the sql request
+            if (resIsProtected[0]) {
+                console.log(resIsProtected[0]);
+                res.sendStatus(500);
+                return;
+            }
+            if (resIsProtected[1].length !== 1) {
+                res.sendStatus(401);
+                return;
+            }
+
+            if (resIsProtected[1][0].isProtected) {
+                const authChangeProtectedRoleResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "changeUserProtectedRole");
+                if (!authChangeProtectedRoleResult) {
+                    res.sendStatus(401);
+                    return;
+                }
             }
 
             const resInsertNewRoleCorrelation = await app.executeQuery(app.db, "DELETE FROM `rolescorrelation` WHERE `i_id` = ?", [resTestIfCorrelationExist[1][0].id]);

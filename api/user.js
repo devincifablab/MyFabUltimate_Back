@@ -119,7 +119,13 @@ module.exports.getAll = async (app) => {
                 return;
             }
             // if the user is not allowed
-            if (false) {
+            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
+            if (!userIdAgent) {
+                res.sendStatus(401);
+                return;
+            }
+            const authViewResult = await require("../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
+            if (!authViewResult) {
                 res.sendStatus(403);
                 return;
             }
@@ -187,7 +193,14 @@ module.exports.get = async (app) => {
                 return;
             }
             // if the user is not allowed
-            if (false) {
+            // if the user is not allowed
+            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
+            if (!userIdAgent) {
+                res.sendStatus(401);
+                return;
+            }
+            const authViewResult = await require("../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
+            if (!authViewResult) {
                 res.sendStatus(403);
                 return;
             }
@@ -268,7 +281,18 @@ module.exports.delete = async (app) => {
                 return;
             }
             // if the user is not allowed
-            if (false) {
+            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
+            if (!userIdAgent) {
+                res.sendStatus(401);
+                return;
+            }
+            const authViewResult = await require("../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
+            if (!authViewResult) {
+                res.sendStatus(403);
+                return;
+            }
+            const authManageUserResult = await require("../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
+            if (!authManageUserResult) {
                 res.sendStatus(403);
                 return;
             }
