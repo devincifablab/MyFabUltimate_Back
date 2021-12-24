@@ -281,6 +281,14 @@ module.exports.post = async (app) => {
                 return;
             }
 
+            const resInsertNewLog = await app.executeQuery(app.db, "INSERT INTO `log_roleschange` (`i_idUserAdmin`, `i_idUserTarget`, `v_actionType`, `i_idRole`) VALUES (?, ?, 'ADD', ?);", [userIdAgent, userId, roleId]);
+            // Error with the sql request
+            if (resInsertNewLog[0] || resInsertNewLog[1].affectedRows !== 1) {
+                console.log(resInsertNewLog[0]);
+                res.sendStatus(500);
+                return;
+            }
+
             res.sendStatus(200);
         } catch (error) {
             console.log("ERROR: POST /user/:idUser/role/:idRole/");
@@ -396,6 +404,14 @@ module.exports.delete = async (app) => {
             // Error with the sql request
             if (resInsertNewRoleCorrelation[0] || resInsertNewRoleCorrelation[1].affectedRows !== 1) {
                 console.log(resInsertNewRoleCorrelation[0]);
+                res.sendStatus(500);
+                return;
+            }
+
+            const resInsertNewLog = await app.executeQuery(app.db, "INSERT INTO `log_roleschange` (`i_idUserAdmin`, `i_idUserTarget`, `v_actionType`, `i_idRole`) VALUES (?, ?, 'DEL', ?);", [userIdAgent, userId, roleId]);
+            // Error with the sql request
+            if (resInsertNewLog[0] || resInsertNewLog[1].affectedRows !== 1) {
+                console.log(resInsertNewLog[0]);
                 res.sendStatus(500);
                 return;
             }
