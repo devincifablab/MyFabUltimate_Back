@@ -1,3 +1,21 @@
+const fs = require("fs");
+
+
+function makeid(length, filename) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() *
+            charactersLength));
+    }
+    if (fs.existsSync(__dirname + '/../../data/files/stl/' + result + "_" + filename)) {
+        return makeid(length, filename);
+    } else {
+        return result + "_" + filename;
+    }
+}
+
 /**
  * @swagger
  * components:
@@ -215,13 +233,18 @@ module.exports.get = async (app) => {
  *       description: "Post all data for ticket creation (projectType)"
  *       required: true
  *       content:
- *        application/json:
+ *         multipart/form-data:
  *          schema:
  *            type: object
  *            properties:
  *              projectType:
  *                type: "integer"
  *                format: "int64"
+ *              filename:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
  *            example:
  *              projectType: 1
  *     responses:
@@ -247,7 +270,7 @@ module.exports.post = async (app) => {
     app.post("/api/ticket/", async function (req, res) {
         try {
             // The body does not have all the necessary field
-            if (!req.body.projectType || isNaN(req.body.projectType)) {
+            if (!req.body.projectType || isNaN(req.body.projectType) || !req.files) {
                 res.sendStatus(400);
                 return;
             }
@@ -275,10 +298,38 @@ module.exports.post = async (app) => {
                 res.sendStatus(500);
                 return;
             }
+
+            //Detects if there are one or more files
+            let files;
+            if (req.files.filename.length == null) files = [req.files.filename];
+            else files = req.files.filename;
+
+            //loop all files
+            for (const file of files) {
+                const fileNameSplited = file.name.split(".");
+                if ((fileNameSplited[fileNameSplited.length - 1]).toLowerCase() === "stl") {
+                    await new Promise(async (resolve) => {
+                        const newFileName = makeid(10, file.name);
+                        fs.copyFile(file.tempFilePath, __dirname + '/../../data/files/stl/' + newFileName, async (err) => {
+                            if (err) throw err;
+                            const resInsertFile = await app.executeQuery(app.db, "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`) VALUES (?, ?, ?, ?);", [userId, lastIdentityRes[1][0].id, file.name, newFileName]);
+                            if (resInsertFile[0]) {
+                                console.log(resInsertFile[0]);
+                                res.sendStatus(500);
+                                return;
+                            }
+                            resolve();
+                        });
+                    })
+                }
+                fs.unlinkSync(file.tempFilePath);
+            }
+
             res.json(lastIdentityRes[1][0])
         } catch (error) {
             console.log("ERROR: POST /api/ticket/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

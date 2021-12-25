@@ -1,5 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const fileUpload = require('express-fileupload');
+const fs = require("fs");
 const app = express();
 const config = require(__dirname + "/config.json");
 
@@ -8,6 +10,11 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
+app.use(fileUpload({
+    createParentPath: true,
+    useTempFiles: true,
+    tempFileDir: __dirname + '\\tmp\\'
+}));
 app.cookiesList = {};
 
 if (config.showSwagger) {
@@ -35,6 +42,18 @@ if (config.showSwagger) {
 }
 
 require("./functions/startApi").run(app);
+
+//prepare folders
+if (!fs.existsSync(__dirname + '/tmp')) fs.mkdirSync(__dirname + '/tmp');
+fs.readdir(__dirname + '/tmp', (err, files) => {
+    if (err) throw err;
+    for (const file of files) {
+        fs.unlinkSync(__dirname + '/tmp/' + file);
+    }
+});
+if (!fs.existsSync(__dirname + '/data')) fs.mkdirSync(__dirname + '/data');
+if (!fs.existsSync(__dirname + '/data/files')) fs.mkdirSync(__dirname + '/data/files');
+if (!fs.existsSync(__dirname + '/data/files/stl')) fs.mkdirSync(__dirname + '/data/files/stl');
 
 async function start() {
     app.db = await require("./functions/dataBase/createConnection").open();

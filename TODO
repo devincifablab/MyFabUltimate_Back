@@ -6,26 +6,16 @@ body{emailAdress}
 Post
 body{newPassword}
 
-/ticket
-GET
-GETALL
-POST
-PUT
-
 /ticket/{id}/file
-GET
-POST
-
-/ticket/{id}/file
-POST
-GET
 PUT
+GETTHELISTOFFILESFORATICKET
 
-/ticket/{id}/message
-POST
-GETALL
+/ticket/
+GETFORUSER
 
 /lockers
 GETALL
 GET
 PUT
+
+Authorization
