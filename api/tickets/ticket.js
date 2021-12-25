@@ -39,7 +39,7 @@
  *           description: The color of the priority
  *       example:
  *         id: 212
- *         userName: John Doe
+ *         userName: John D.
  *         projectType: Test
  *         creationDate: 2021-12-16T09:31:38.000Z
  *         modificationDate: 2021-12-16T09:31:38.000Z
@@ -239,8 +239,6 @@ module.exports.get = async (app) => {
  *        description: "The body does not have all the necessary field"
  *       401:
  *        description: "The user is unauthenticated"
- *       403:
- *        description: "The user is not allowed"
  *       500:
  *        description: "Internal error with the request"
  */
