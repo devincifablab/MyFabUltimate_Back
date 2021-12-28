@@ -1,5 +1,15 @@
 const sha256 = require("sha256");
 
+function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() *
+            charactersLength));
+    }
+    return result;
+}
 
 /**
  * @swagger
@@ -44,6 +54,7 @@ const sha256 = require("sha256");
  *       500:
  *        description: "Internal error with the request"
  */
+
 module.exports.putMe = async (app) => {
     app.put("/api/user/password/", async function (req, res) {
         try {
@@ -194,6 +205,155 @@ module.exports.put = async (app) => {
             })
         } catch (error) {
             console.log("ERROR: PUT /user/password/:id");
+            console.log(error);
+        }
+    })
+}
+
+/**
+ * @swagger
+ * /user/forgottenPassword/:
+ *   post:
+ *     summary: Send an email to reset password
+ *     tags: [User]
+ *     requestBody:
+ *       description: "Email of the user"
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              email:
+ *                type: string
+ *     responses:
+ *       200:
+ *         description: "An email to reset the password has been sent"
+ *       400:
+ *        description: "Email not specified"
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+module.exports.postForgottenPassword = async (app) => {
+    app.post("/api/user/forgottenPassword/", async function (req, res) {
+        try {
+            const email = req.body.email;
+            if (!email) {
+                res.sendStatus(400);
+                return;
+            }
+
+            console.log(email);
+            const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id` FROM `users` WHERE `v_email` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [email]);
+            // The sql request has an error
+            if (dbRes[0]) {
+                console.log(dbRes[0]);
+                res.sendStatus(500);
+                return;
+            }
+            // The response has no value
+            if (dbRes[1].length !== 1) {
+                res.sendStatus(200);
+                return;
+            }
+            const idNewUser = dbRes[1][0].id;
+            const tocken = makeid(10);
+
+            const sendMail = req.body.sendMail == null ? true : req.body.sendMail;
+            const resInsertTocken = await app.executeQuery(app.db, "INSERT INTO `mailtocken` (`i_idUser`, `v_value`, `b_mailSend`) VALUES (?, ?, ?);", [idNewUser, tocken, sendMail ? "1" : "0"]);
+            if (resInsertTocken[0]) {
+                console.log(resInsertTocken[0]);
+                res.sendStatus(500);
+                return;
+            }
+
+            //Send validation email to the user
+            if (sendMail) {
+                console.log("Mail send");
+            }
+
+            res.sendStatus(200);
+        } catch (error) {
+            console.log("ERROR: POST /api/user/forgottenPassword/");
+            console.log(error);
+        }
+    })
+}
+
+/**
+ * @swagger
+ * /user/resetPassword/{tocken}:
+ *   put:
+ *     summary: Change the user's password with the associated tocken
+ *     tags: [User]
+ *     parameters:
+ *     - name: "tocken"
+ *       in: "path"
+ *       description: "Tocken of user"
+ *       required: true
+ *       type: "string"
+ *     requestBody:
+ *       description: "Data to change password"
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              newPassword:
+ *                type: string
+ *     responses:
+ *       200:
+ *        description: "The user password is updated"
+ *       400:
+ *        description: "The body does not have all the necessary field"
+ *       401:
+ *        description: "The user is unauthenticated"
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+module.exports.putResetPassword = async (app) => {
+    app.put("/api/user/resetPassword/:tocken", async function (req, res) {
+        try {
+            // The body does not have all the necessary field
+            if (!req.body.newPassword || !req.params.tocken) {
+                res.sendStatus(400);
+                return;
+            }
+
+            const dbSelectId = await app.executeQuery(app.db, "SELECT i_idUser AS 'id' FROM `mailtocken` WHERE v_value = ?", [req.params.tocken]);
+            if (dbSelectId[0]) {
+                console.log(dbSelectId[0]);
+                res.sendStatus(500);
+                return;
+            }
+            if (dbSelectId[1].length != 1) {
+                res.sendStatus(500);
+                return;
+            }
+
+            const idUser = dbSelectId[1][0].id;
+            const dbRes = await app.executeQuery(app.db, "UPDATE `users` SET `v_password` = ? WHERE `i_id` = ?;", [sha256(req.body.newPassword), idUser]);
+            // Error with the sql request
+            if (dbRes[0]) {
+                console.log(dbRes[0]);
+                res.sendStatus(500);
+                return;
+            }
+
+            const dbDelete = await app.executeQuery(app.db, "DELETE FROM `mailtocken` WHERE v_value = ?", [req.params.tocken]);
+            if (dbDelete[0]) {
+                console.log(dbDelete[0]);
+                res.sendStatus(500);
+                return;
+            }
+
+            // Everything is fine
+            res.sendStatus(200);
+        } catch (error) {
+            console.log("ERROR: PUT /api/user/password/");
             console.log(error);
         }
     })

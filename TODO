@@ -1,11 +1,3 @@
-/user/forgottenPassword
-POST
-body{emailAdress}
-
-/user/resetPassword/{tocken}
-Post
-body{newPassword}
-
 /lockers
 GETALL
 GET
