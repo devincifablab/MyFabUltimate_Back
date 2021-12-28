@@ -6,10 +6,6 @@ body{emailAdress}
 Post
 body{newPassword}
 
-/ticket/{id}/file
-PUT
-GETTHELISTOFFILESFORATICKET
-
 /lockers
 GETALL
 GET
