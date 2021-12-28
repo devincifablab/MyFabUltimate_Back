@@ -110,7 +110,6 @@ module.exports.getMe = async (app) => {
                 res.sendStatus(401);
                 return;
             }
-            console.log("qs");
             // if the user is not allowed
             const userIdAgent = app.cookiesList[req.headers.dvflcookie];
             if (!userIdAgent) {

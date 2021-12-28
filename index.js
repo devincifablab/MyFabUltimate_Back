@@ -25,7 +25,7 @@ if (config.showSwagger) {
             openapi: "3.0.0",
             info: {
                 title: "DeVinci FabLab API",
-                version: "1.0.0",
+                version: require("./package.json").version,
                 description: "Hello and welcome to the API documentation of the DeVinci FabLab Association website.\n" +
                     "If you are not a developer of the site or a member of the association, you have nothing to do on this page (I know you will stay anyway). Congratulations for finding this page by the way.\n",
             },
