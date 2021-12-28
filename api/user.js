@@ -139,9 +139,74 @@ module.exports.getAll = async (app) => {
         } catch (error) {
             console.log("ERROR: GET /api/user/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
+
+/**
+ * @swagger
+ * /user/me:
+ *   get:
+ *     summary: Get data of the current user
+ *     tags: [User]
+ *     parameters:
+ *     - name: dvflCookie
+ *       in: header
+ *       description: Cookie of the user making the request
+ *       required: true
+ *       type: string
+ *     responses:
+ *       200:
+ *         description: Get one user data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       204:
+ *        description: "The request has no content"
+ *       401:
+ *        description: "The user is unauthenticated"
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+module.exports.getMe = async (app) => {
+    app.get("/api/user/me", async function (req, res) {
+        try {
+            const dvflcookie = req.headers.dvflcookie;
+            // unauthenticated user
+            if (!dvflcookie) {
+                res.sendStatus(401);
+                return;
+            }
+            // if the user is not allowed
+            const userId = app.cookiesList[dvflcookie];
+            if (!userId) {
+                res.sendStatus(401);
+                return;
+            }
+            const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [userId, userId]);
+            // The sql request has an error
+            if (dbRes[0]) {
+                console.log(dbRes[0]);
+                res.sendStatus(500);
+                return;
+            }
+            // The response has no value
+            if (dbRes[1].length !== 1) {
+                res.sendStatus(204);
+                return;
+            }
+            res.json(dbRes[1][0]);
+        } catch (error) {
+            console.log("ERROR: GET /api/user/me");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+}
+
 
 /**
  * @swagger
@@ -217,20 +282,15 @@ module.exports.get = async (app) => {
                 return;
             }
             // The response has no value
-            if (dbRes[1].length < 1) {
+            if (dbRes[1].length !== 1) {
                 res.sendStatus(204);
-                return;
-            }
-            // The response has multiples values
-            if (dbRes[1].length > 1) {
-                console.log("Select one user as multiple response");
-                res.sendStatus(500);
                 return;
             }
             res.json(dbRes[1][0]);
         } catch (error) {
             console.log("ERROR: GET /api/user/:id");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -309,20 +369,15 @@ module.exports.delete = async (app) => {
                 return;
             }
             // The response has no value
-            if (dbRes[1].changedRows < 1) {
+            if (dbRes[1].changedRows !== 1) {
                 res.sendStatus(204);
-                return;
-            }
-            // The response has multiples values
-            if (dbRes[1].changedRows > 1) {
-                console.log("Delete one user as multiple deletions");
-                res.sendStatus(500);
                 return;
             }
             res.sendStatus(200);
         } catch (error) {
             console.log("ERROR: DELETE /api/user/:id");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
