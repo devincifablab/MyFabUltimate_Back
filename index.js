@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
+const expressHeader = require('express-header')
 const fs = require("fs");
 const app = express();
 const config = require(__dirname + "/config.json");
@@ -16,6 +17,11 @@ app.use(fileUpload({
     tempFileDir: __dirname + '\\tmp\\'
 }));
 app.cookiesList = {};
+app.use(expressHeader([
+	{key: 'Access-Control-Allow-Origin', value: '*'},
+	{key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE'},
+	{key: 'Access-Control-Allow-Headers', value: 'Origin, Content-Type, X-Auth-Token'}
+]))
 
 if (config.showSwagger) {
     const swaggerUI = require("swagger-ui-express");
