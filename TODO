@@ -10,9 +10,6 @@ body{newPassword}
 PUT
 GETTHELISTOFFILESFORATICKET
 
-/ticket/
-GETFORUSER
-
 /lockers
 GETALL
 GET

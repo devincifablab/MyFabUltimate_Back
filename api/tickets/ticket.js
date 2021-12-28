@@ -76,6 +76,63 @@ function makeid(length, filename) {
 
 /**
  * @swagger
+ * /ticket/me/:
+ *   get:
+ *     summary: Get all tickets data from a user.
+ *     tags: [Ticket]
+ *     parameters:
+ *     - name: dvflCookie
+ *       in: header
+ *       description: Cookie of the user making the request
+ *       required: true
+ *       type: string
+ *     responses:
+ *       "200":
+ *         description: "Get all ticlets data from a user"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: "array"
+ *               items:
+ *                 $ref: '#/components/schemas/Ticket'
+ *       401:
+ *        description: "The user is unauthenticated"
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+module.exports.getMe = async (app) => {
+    app.get("/api/ticket/me/", async function (req, res) {
+        try {
+            const dvflcookie = req.headers.dvflcookie;
+            // unauthenticated user
+            if (!dvflcookie) {
+                res.sendStatus(401);
+                return;
+            }
+            console.log("qs");
+            // if the user is not allowed
+            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
+            if (!userIdAgent) {
+                res.sendStatus(401);
+                return;
+            }
+            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id WHERE pt.i_idUser = ? ORDER BY pt.dt_creationdate DESC", [userIdAgent]);
+            if (dbRes[0]) {
+                console.log(dbRes[0]);
+                res.sendStatus(500);
+                return;
+            }
+            res.json(dbRes[1])
+        } catch (error) {
+            console.log("ERROR: GET /api/ticket/me/");
+            console.log(error);
+        }
+    })
+}
+
+/**
+ * @swagger
  * /ticket/:
  *   get:
  *     summary: Get all tickets data. The user need to be a 'myFabAgent'
@@ -123,7 +180,7 @@ module.exports.getAll = async (app) => {
                 res.sendStatus(403);
                 return;
             }
-            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id", []);
+            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id ORDER BY pt.dt_creationdate DESC", []);
             if (dbRes[0]) {
                 console.log(dbRes[0]);
                 res.sendStatus(500);
