@@ -179,7 +179,7 @@ module.exports.getAll = async (app) => {
                 res.sendStatus(403);
                 return;
             }
-            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id ORDER BY pt.dt_creationdate DESC", []);
+            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.i_groupNumber AS 'groupNumber' , pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id ORDER BY pt.dt_creationdate DESC", []);
             if (dbRes[0]) {
                 console.log(dbRes[0]);
                 res.sendStatus(500);
@@ -264,7 +264,7 @@ module.exports.get = async (app) => {
                     return;
                 }
             }
-            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id WHERE pt.i_id = ?", [req.params.id]);
+            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.i_groupNumber AS 'groupNumber' , pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id WHERE pt.i_id = ?", [req.params.id]);
             if (dbRes[0]) {
                 console.log(dbRes[0]);
                 res.sendStatus(500);
@@ -305,8 +305,16 @@ module.exports.get = async (app) => {
  *              projectType:
  *                type: "integer"
  *                format: "int64"
- *              filename:
+ *                required: true
+ *              groupNumber:
+ *                type: "integer"
+ *                format: "int64"
+ *              comment:
+ *                type: "string"
+ *                required: true
+ *              filedata:
  *                 type: array
+ *                 required: true
  *                 items:
  *                   type: string
  *                   format: binary
@@ -335,7 +343,7 @@ module.exports.post = async (app) => {
     app.post("/api/ticket/", async function (req, res) {
         try {
             // The body does not have all the necessary field
-            if (!req.body.projectType || isNaN(req.body.projectType) || !req.files) {
+            if (!req.body.projectType || isNaN(req.body.projectType) || req.body.groupNumber ? isNaN(req.body.groupNumber) : false || !req.body.comment || !req.files) {
                 res.sendStatus(400);
                 return;
             }
@@ -351,7 +359,7 @@ module.exports.post = async (app) => {
                 res.sendStatus(401);
                 return;
             }
-            const dbRes = await app.executeQuery(app.db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, (SELECT i_id FROM `gd_ticketpriority` WHERE v_name = 'Normal'));", [userId, req.body.projectType]);
+            const dbRes = await app.executeQuery(app.db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_groupNumber`,`i_priority`) VALUES (?, ?, ?, (SELECT i_id FROM `gd_ticketpriority` WHERE v_name = 'Normal'));", [userId, req.body.projectType, req.body.groupNumber]);
             if (dbRes[0]) {
                 console.log(dbRes[0]);
                 res.sendStatus(500);
@@ -366,8 +374,8 @@ module.exports.post = async (app) => {
 
             //Detects if there are one or more files
             let files;
-            if (req.files.filename.length == null) files = [req.files.filename];
-            else files = req.files.filename;
+            if (req.files.filedata.length == null) files = [req.files.filedata];
+            else files = req.files.filedata;
 
             //loop all files
             for (const file of files) {
@@ -388,6 +396,13 @@ module.exports.post = async (app) => {
                     })
                 }
                 fs.unlinkSync(file.tempFilePath);
+            }
+
+            const resCommentInsert = await app.executeQuery(app.db, "INSERT INTO `ticketmessages` (`i_idUser`, `i_idTicket`, `v_content`) VALUES (?, ?, ?)", [userId, lastIdentityRes[1][0].id, req.body.comment]);
+            if (resCommentInsert[0]) {
+                console.log(resCommentInsert[0]);
+                res.sendStatus(500);
+                return;
             }
 
             res.json(lastIdentityRes[1][0])
