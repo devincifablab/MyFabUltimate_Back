@@ -160,16 +160,10 @@ module.exports.getOneFile = async (app) => {
             if (resGetUserTicket[0] || resGetUserTicket[1].length > 1) {
                 console.log(resGetUserTicket[0]);
                 res.sendStatus(500);
-                for (const file of files) {
-                    fs.unlinkSync(file.tempFilePath);
-                }
                 return;
             }
             if (resGetUserTicket[1].length < 1) {
                 res.sendStatus(400);
-                for (const file of files) {
-                    fs.unlinkSync(file.tempFilePath);
-                }
                 return;
             }
             const idTicketUser = resGetUserTicket[1][0].id;
@@ -177,13 +171,9 @@ module.exports.getOneFile = async (app) => {
                 const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "myFabAgent");
                 if (!authViewResult) {
                     res.sendStatus(403);
-                    for (const file of files) {
-                        fs.unlinkSync(file.tempFilePath);
-                    }
                     return;
                 }
             }
-            console.log(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName);
             if (fs.existsSync(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName)) res.download(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName, resGetUserTicket[1][0].fileName);
             else res.sendStatus(204);
         } catch (err) {
