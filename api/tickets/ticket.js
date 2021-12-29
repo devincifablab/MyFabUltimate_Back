@@ -197,7 +197,7 @@ module.exports.getAll = async (app) => {
  * @swagger
  * /ticket/{id}:
  *   get:
- *     summary: Get a ticket data. The user need to be a 'myFabAgent'
+ *     summary: Get a ticket data. The user need to be a 'myFabAgent' or the ticket owner
  *     tags: [Ticket]
  *     parameters:
  *     - name: dvflCookie
@@ -250,10 +250,19 @@ module.exports.get = async (app) => {
                 res.sendStatus(401);
                 return;
             }
-            const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "myFabAgent");
-            if (!authViewResult) {
-                res.sendStatus(403);
+            const resGetUserTicket = await app.executeQuery(app.db, "SELECT `i_idUser` AS 'id' FROM `printstickets` WHERE i_id = ?", [req.params.id]);
+            if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
+                console.log(resGetUserTicket[0]);
+                res.sendStatus(500);
                 return;
+            }
+            const idTicketUser = resGetUserTicket[1][0].id;
+            if (idTicketUser != userIdAgent) {
+                const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "myFabAgent");
+                if (!authViewResult) {
+                    res.sendStatus(403);
+                    return;
+                }
             }
             const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id WHERE pt.i_id = ?", [req.params.id]);
             if (dbRes[0]) {
