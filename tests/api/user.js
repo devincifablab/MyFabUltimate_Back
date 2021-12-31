@@ -5,7 +5,7 @@ const config = require('../../config.json');
 module.exports.getAll = {
     test200: async (db, executeQuery) => {
         const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "getAllGood");
-        await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "Administrateur"))', [userData[0]]);
+        await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData[0]]);
         return await new Promise((resolve, reject) => {
             axios({
                 method: 'get',
@@ -48,7 +48,7 @@ module.exports.getAll = {
     },
     testNoHeader: async (db, executeQuery) => {
         const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "getAllWithoutHeader");
-        await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "Administrateur"))', [userData[0]]);
+        await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData[0]]);
         return await new Promise((resolve, reject) => {
             axios({
                 method: 'get',
@@ -67,7 +67,7 @@ module.exports.getAll = {
     },
     testNoValidDvflCookie: async (db, executeQuery) => {
         const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "getAllWithoutValidCookie");
-        await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "Administrateur"))', [userData[0]]);
+        await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData[0]]);
         return await new Promise((resolve, reject) => {
             axios({
                 method: 'get',
