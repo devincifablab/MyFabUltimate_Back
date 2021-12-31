@@ -113,14 +113,9 @@ module.exports.getAll = async (app) => {
     app.get("/api/user/", async function (req, res) {
         try {
             const dvflcookie = req.headers.dvflcookie;
-            // unauthenticated user
-            if (!dvflcookie) {
-                res.sendStatus(401);
-                return;
-            }
-            // if the user is not allowed
             const userIdAgent = app.cookiesList[req.headers.dvflcookie];
-            if (!userIdAgent) {
+            // unauthenticated user
+            if (!dvflcookie || !userIdAgent) {
                 res.sendStatus(401);
                 return;
             }
@@ -175,14 +170,9 @@ module.exports.getMe = async (app) => {
     app.get("/api/user/me", async function (req, res) {
         try {
             const dvflcookie = req.headers.dvflcookie;
-            // unauthenticated user
-            if (!dvflcookie) {
-                res.sendStatus(401);
-                return;
-            }
-            // if the user is not allowed
             const userId = app.cookiesList[dvflcookie];
-            if (!userId) {
+            // unauthenticated user
+            if (!dvflcookie || !userId) {
                 res.sendStatus(401);
                 return;
             }
@@ -251,27 +241,21 @@ module.exports.get = async (app) => {
     app.get("/api/user/:id", async function (req, res) {
         try {
             const dvflcookie = req.headers.dvflcookie;
+            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
             const idUserTarget = req.params.id;
-            // unauthenticated user
-            if (!dvflcookie) {
-                res.sendStatus(401);
+            // Id is not a number
+            if (isNaN(idUserTarget)) {
+                res.sendStatus(400);
                 return;
             }
-            // if the user is not allowed
-            // if the user is not allowed
-            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
-            if (!userIdAgent) {
+            // unauthenticated user
+            if (!dvflcookie || !userIdAgent) {
                 res.sendStatus(401);
                 return;
             }
             const authViewResult = await require("../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
             if (!authViewResult) {
                 res.sendStatus(403);
-                return;
-            }
-            // Id is not a number
-            if (isNaN(idUserTarget)) {
-                res.sendStatus(400);
                 return;
             }
             const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [idUserTarget, idUserTarget]);

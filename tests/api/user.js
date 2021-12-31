@@ -43,6 +43,9 @@ module.exports.getAll = {
                     return resolve(false);
                 }
                 return resolve(true);
+            }).catch(async function (err) {
+                console.log("test200 get an error : " + err.response.status);
+                return resolve(false);
             });
         });
     },
@@ -138,7 +141,7 @@ module.exports.getMe = {
                     return resolve(false);
                 }
                 if (response.data["id"] !== userData[0]) {
-                    console.log("response.data['id'] doesn't exist");
+                    console.log("response.data['id'] doesn't have the good value");
                     return resolve(false);
                 }
                 if (response.data["firstName"] === undefined) {
@@ -174,6 +177,9 @@ module.exports.getMe = {
                     return resolve(false);
                 }
                 return resolve(true);
+            }).catch(async function (err) {
+                console.log("test200 get an error : " + err.response.status);
+                return resolve(false);
             });
         });
     },
@@ -210,6 +216,137 @@ module.exports.getMe = {
             }).catch(async function (err) {
                 if (err.response.status !== 401) {
                     console.log("testNoValidDvflCookie get an error : " + err.response.status);
+                    return resolve(false);
+                }
+                return resolve(true);
+            });
+        });
+    }
+}
+
+module.exports.getWithId = {
+    test200: async (db, executeQuery) => {
+        const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "getWithIdGood");
+        await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData[0]]);
+        return await new Promise((resolve, reject) => {
+            axios({
+                method: 'get',
+                url: config.url + config.port + '/api/user/1',
+                headers: {
+                    'dvflCookie': userData[1]
+                }
+            }).then(function (response) {
+                if (response.status !== 200) {
+                    console.log("code !== 200");
+                    return resolve(false);
+                }
+                if (Object.prototype.toString.call(response.data) != "[object Object]") {
+                    console.log("response.data is not an object");
+                    return resolve(false);
+                }
+                if (Object.keys(response.data).length < 1) {
+                    console.log("response.data is empty");
+                    return resolve(false);
+                }
+                if (response.data["id"] === undefined) {
+                    console.log("response.data['id'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["firstName"] === undefined) {
+                    console.log("response.data['firstName'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["lastName"] === undefined) {
+                    console.log("response.data['lastName'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["email"] === undefined) {
+                    console.log("response.data['email'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["creationDate"] === undefined) {
+                    console.log("response.data['creationDate'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["discordid"] === undefined) {
+                    console.log("response.data['discordid'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["language"] === undefined) {
+                    console.log("response.data['language'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["acceptedRule"] === undefined) {
+                    console.log("response.data['acceptedRule'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["mailValidated"] === undefined) {
+                    console.log("response.data['mailValidated'] doesn't exist");
+                    return resolve(false);
+                }
+                return resolve(true);
+            }).catch(async function (err) {
+                console.log("test200 get an error : " + err.response.status);
+                return resolve(false);
+            });
+        });
+    },
+    testNoHeader: async (db, executeQuery) => {
+        const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "getWithIdWithoutHeader");
+        await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData[0]]);
+        return await new Promise((resolve, reject) => {
+            axios({
+                method: 'get',
+                url: config.url + config.port + '/api/user/1'
+            }).then(function (response) {
+                console.log("request accepted without header");
+                return resolve(false);
+            }).catch(async function (err) {
+                if (err.response.status !== 401) {
+                    console.log("testNoHeader get an error : " + err.response.status);
+                    return resolve(false);
+                }
+                return resolve(true);
+            });
+        });
+    },
+    testNoValidDvflCookie: async (db, executeQuery) => {
+        const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "getWithIdWithoutValidCookie");
+        await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData[0]]);
+        return await new Promise((resolve, reject) => {
+            axios({
+                method: 'get',
+                url: config.url + config.port + '/api/user/1',
+                headers: {
+                    'dvflCookie': "wrongCookie"
+                }
+            }).then(function (response) {
+                console.log("request accepted without header");
+                return resolve(false);
+            }).catch(async function (err) {
+                if (err.response.status !== 401) {
+                    console.log("testNoValidDvflCookie get an error : " + err.response.status);
+                    return resolve(false);
+                }
+                return resolve(true);
+            });
+        });
+    },
+    testWithoutAuthorization: async (db, executeQuery) => {
+        const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "getWithIdWithoutAuthorization");
+        return await new Promise((resolve, reject) => {
+            axios({
+                method: 'get',
+                url: config.url + config.port + '/api/user/1',
+                headers: {
+                    'dvflCookie': userData[1]
+                }
+            }).then(function (response) {
+                console.log("request accepted without header");
+                return resolve(false);
+            }).catch(async function (err) {
+                if (err.response.status !== 403) {
+                    console.log("testWithoutAuthorization get an error : " + err.response.status);
                     return resolve(false);
                 }
                 return resolve(true);
