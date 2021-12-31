@@ -1,18 +1,6 @@
 const axios = require('axios');
 const config = require('../../config.json');
 
-/*
-axios({
-    method: 'post',
-    url: '/user/12345',
-    data: {
-        firstName: 'Fred',
-        lastName: 'Flintstone'
-    }
-    }).then(function (response) {
-        console.log(response);
-    });
-*/
 
 module.exports.getAll = {
     test200: async (db, executeQuery) => {
@@ -114,6 +102,114 @@ module.exports.getAll = {
             }).catch(async function (err) {
                 if (err.response.status !== 403) {
                     console.log("testWithoutAuthorization get an error : " + err.response.status);
+                    return resolve(false);
+                }
+                return resolve(true);
+            });
+        });
+    }
+}
+
+module.exports.getMe = {
+    test200: async (db, executeQuery) => {
+        const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "getMeGood");
+        return await new Promise((resolve, reject) => {
+            axios({
+                method: 'get',
+                url: config.url + config.port + '/api/user/me',
+                headers: {
+                    'dvflCookie': userData[1]
+                }
+            }).then(function (response) {
+                if (response.status !== 200) {
+                    console.log("code !== 200");
+                    return resolve(false);
+                }
+                if (Object.prototype.toString.call(response.data) != "[object Object]") {
+                    console.log("response.data is not an object");
+                    return resolve(false);
+                }
+                if (Object.keys(response.data).length < 1) {
+                    console.log("response.data is empty");
+                    return resolve(false);
+                }
+                if (response.data["id"] === undefined) {
+                    console.log("response.data['id'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["id"] !== userData[0]) {
+                    console.log("response.data['id'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["firstName"] === undefined) {
+                    console.log("response.data['firstName'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["lastName"] === undefined) {
+                    console.log("response.data['lastName'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["email"] === undefined) {
+                    console.log("response.data['email'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["creationDate"] === undefined) {
+                    console.log("response.data['creationDate'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["discordid"] === undefined) {
+                    console.log("response.data['discordid'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["language"] === undefined) {
+                    console.log("response.data['language'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["acceptedRule"] === undefined) {
+                    console.log("response.data['acceptedRule'] doesn't exist");
+                    return resolve(false);
+                }
+                if (response.data["mailValidated"] === undefined) {
+                    console.log("response.data['mailValidated'] doesn't exist");
+                    return resolve(false);
+                }
+                return resolve(true);
+            });
+        });
+    },
+    testNoHeader: async (db, executeQuery) => {
+        const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "getMeWithoutHeader");
+        return await new Promise((resolve, reject) => {
+            axios({
+                method: 'get',
+                url: config.url + config.port + '/api/user/me'
+            }).then(function (response) {
+                console.log("request accepted without header");
+                return resolve(false);
+            }).catch(async function (err) {
+                if (err.response.status !== 401) {
+                    console.log("testNoHeader get an error : " + err.response.status);
+                    return resolve(false);
+                }
+                return resolve(true);
+            });
+        });
+    },
+    testNoValidDvflCookie: async (db, executeQuery) => {
+        const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "getMeWithoutValidCookie");
+        return await new Promise((resolve, reject) => {
+            axios({
+                method: 'get',
+                url: config.url + config.port + '/api/user/me',
+                headers: {
+                    'dvflCookie': "wrongCookie"
+                }
+            }).then(function (response) {
+                console.log("request accepted without header");
+                return resolve(false);
+            }).catch(async function (err) {
+                if (err.response.status !== 401) {
+                    console.log("testNoValidDvflCookie get an error : " + err.response.status);
                     return resolve(false);
                 }
                 return resolve(true);
