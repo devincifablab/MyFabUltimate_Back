@@ -373,7 +373,7 @@ module.exports.put = async (app) => {
                 res.sendStatus(401);
                 return;
             }
-            if (!req.params.id, !req.body.comment, !req.body.isValid) {
+            if (!req.params.id, !req.body.comment, typeof req.body.isValid != "boolean") {
                 res.sendStatus(400);
                 return;
             }
