@@ -7,11 +7,13 @@ function getDb() {
         host: config.db.host,
         user: config.db.user,
         password: config.db.password,
-        database: config.db.database,
         connectTimeout: 10000
     });
     return db;
 }
+
+
+module.exports.getDb = getDb;
 
 module.exports.open = async (callback) => {
     const db = getDb();
@@ -23,8 +25,10 @@ module.exports.open = async (callback) => {
                 throw err.code;
             }
 
-            if (callback) callback(db);
-            resolve(db);
+            db.query("USE ??", [config.db.database], function (error, results, fields) {
+                if (callback) callback(db);
+                resolve(db);
+            })
         });
     })
 }
