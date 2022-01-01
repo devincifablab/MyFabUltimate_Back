@@ -335,13 +335,13 @@ module.exports.delete = async (app) => {
                 res.sendStatus(403);
                 return;
             }
-            const authManageUserResult = await require("../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
+            const authManageUserResult = await require("../functions/userAuthorization").validateUserAuth(app, userIdAgent, "manageUser");
             if (!authManageUserResult) {
                 res.sendStatus(403);
                 return;
             }
-            // Id is not a number
-            if (isNaN(idUserTarget)) {
+            // Id is not a number or user try to delete himself
+            if (isNaN(idUserTarget) || idUserTarget == userIdAgent) {
                 res.sendStatus(400);
                 return;
             }
