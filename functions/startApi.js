@@ -23,6 +23,9 @@ async function runFolder(path, app) {
                 }
             }
         }
+        app.get("*", async function (req, res) {
+            res.sendStatus(404);
+        })
     });
 }
 
