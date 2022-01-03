@@ -554,7 +554,7 @@ module.exports.deleteWithId = {
             });
         });
     },
-    testWithIdUnKnown: async (db, executeQuery) => {
+    testWithIdUnknown: async (db, executeQuery) => {
         const userData = await require('../createNewUserAndLog').createNewUserAndLog(db, executeQuery, "deleteWithIdUnKnownAgent");
         await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData[0]]);
         await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleManageUser"))', [userData[0]]);
@@ -567,12 +567,12 @@ module.exports.deleteWithId = {
                 }
             }).then(async function (response) {
                 if (response.status !== 204) {
-                    console.log("testWithIdUnKnown get an incorrect response code : " + response.status);
+                    console.log("testWithIdUnknown get an incorrect response code : " + response.status);
                     return resolve(false);
                 }
                 return resolve(true);
             }).catch(async function (err) {
-                console.log("testWithIdUnKnown get an error : " + err.response.status);
+                console.log("testWithIdUnknown get an error : " + err.response.status);
                 return resolve(false);
             });
         });
