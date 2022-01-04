@@ -2,6 +2,7 @@ const fs = require('fs');
 const dbName = "myFabUltimateTest";
 const executeQuery = require("../functions/dataBase/executeQuery").run;
 const badFile = [];
+let fileNumber = 0;
 
 
 async function runFolder(path, db) {
@@ -9,8 +10,9 @@ async function runFolder(path, db) {
     for (let indexFile = 0; indexFile < files.length; indexFile++) {
         const file = files[indexFile];
         const filePath = path + "/" + file;
-        if (fs.lstatSync(__dirname + filePath).isDirectory()) runFolder(filePath, db);
+        if (fs.lstatSync(__dirname + filePath).isDirectory()) await runFolder(filePath, db);
         else {
+            fileNumber++;
             const fileSplited = file.split(".");
             if (fileSplited[fileSplited.length - 1] === "js") {
                 const route = require(__dirname + filePath);
@@ -25,13 +27,13 @@ async function runFolder(path, db) {
                     for (let index = 0; index < keysOfRouteToTest.length; index++) {
                         const unitTest = routeToTest[keysOfRouteToTest[index]];
                         const res = await unitTest(db, executeQuery);
-                        addToLog = addToLog + (indexFile + 1) + "#--- " + keysOfRouteToTest[index] + " / " + res + "\n"
+                        addToLog = addToLog + (fileNumber) + "#--- " + keysOfRouteToTest[index] + " / " + res + "\n"
                         if (res) goodUnitTest++;
                     }
-                    log = log + (indexFile + 1) + "#- " + keys[index] + "   [" + goodUnitTest + "/" + keysOfRouteToTest.length + "]\n" + addToLog;
+                    log = log + (fileNumber) + "#- " + keys[index] + "   [" + goodUnitTest + "/" + keysOfRouteToTest.length + "]\n" + addToLog;
                     if (keysOfRouteToTest.length - goodUnitTest === 0) goodEndpoint++;
                 }
-                console.log((indexFile + 1) + "# " + filePath + "   [" + goodEndpoint + "/" + keys.length + "]\n" + log);
+                console.log((fileNumber) + "# " + filePath + "   [" + goodEndpoint + "/" + keys.length + "]\n" + log);
                 if (keys.length - goodEndpoint !== 0) badFile.push(filePath)
             }
         }
@@ -72,7 +74,7 @@ async function startTest() {
     if (badFile.length === 0) {
         console.log("All tests passed");
     } else {
-        console.log("some test are not valid:");
+        console.log("Some tests are not valid:");
         for (let index = 0; index < badFile.length; index++) {
             const element = badFile[index];
             console.log("- " + element);

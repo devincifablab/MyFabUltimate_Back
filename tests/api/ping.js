@@ -41,7 +41,7 @@ module.exports.post = {
 }
 
 module.exports.put = {
-    testPingPost: async (db, executeQuery) => {
+    testPingPut: async (db, executeQuery) => {
         res = new Promise((resolve, reject) => {
             axios({
                 method: 'put',
@@ -60,7 +60,7 @@ module.exports.put = {
 }
 
 module.exports.delete = {
-    testPingPost: async (db, executeQuery) => {
+    testPingDelete: async (db, executeQuery) => {
         res = new Promise((resolve, reject) => {
             axios({
                 method: 'delete',
