@@ -499,7 +499,7 @@ module.exports.deleteWithId = async (app) => {
             //return response
             res.sendStatus(200);
         } catch (error) {
-            console.log("ERROR: GET /api/ticket/me/");
+            console.log("ERROR: DELETE /api/ticket/:id");
             console.log(error);
             res.sendStatus(500);
         }

@@ -34,6 +34,67 @@
 
 /**
  * @swagger
+ * /role/:
+ *   get:
+ *     summary: Get all existing roles
+ *     tags: [Role]
+ *     parameters:
+ *     - name: dvflCookie
+ *       in: header
+ *       description: Cookie of the user making the request
+ *       required: true
+ *       type: string
+ *     responses:
+ *       200:
+ *         description: "The role list is send"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: "array"
+ *               items:
+ *                 $ref: '#/components/schemas/Role'
+ *       400:
+ *        description: "The body does not have all the necessary field"
+ *       401:
+ *        description: "The user making the request is not authorized"
+ *       500:
+ *        description: "Internal error with the request or unknown role or user"
+ */
+
+ module.exports.getRoles = async (app) => {
+    app.get("/api/role/", async function (req, res) {
+        try {
+            // The body does not have all the necessary field
+            if (!req.headers.dvflcookie) {
+                res.sendStatus(400);
+                return;
+            }
+
+            const userId = app.cookiesList[req.headers.dvflcookie];
+            if (!userId) {
+                res.sendStatus(401);
+                return;
+            }
+
+            const resTestIfCorrelationExist = await app.executeQuery(app.db, "SELECT `i_id` AS 'id', `v_name` AS 'name', `v_description` AS 'description', `v_color` AS 'color', `b_isProtected` AS 'isProtected' FROM `gd_roles`", []);
+            // Error with the sql request
+            if (resTestIfCorrelationExist[0]) {
+                console.log(resTestIfCorrelationExist[0]);
+                res.sendStatus(500);
+                return;
+            }
+
+            res.json(resTestIfCorrelationExist[1]);
+        } catch (error) {
+            console.log("ERROR: GET /role/");
+            console.log(error);
+        }
+    })
+}
+
+
+/**
+ * @swagger
  * /user/{idUser}/role/:
  *   get:
  *     summary: See all role for a user
