@@ -116,7 +116,7 @@ module.exports.getMe = async (app) => {
                 res.sendStatus(401);
                 return;
             }
-            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id WHERE pt.i_idUser = ? ORDER BY pt.dt_creationdate DESC", [userIdAgent]);
+            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id WHERE pt.i_idUser = ? AND pt.b_isDeleted = 0 ORDER BY pt.dt_creationdate DESC", [userIdAgent]);
             if (dbRes[0]) {
                 console.log(dbRes[0]);
                 res.sendStatus(500);
@@ -180,7 +180,7 @@ module.exports.getAll = async (app) => {
                 res.sendStatus(403);
                 return;
             }
-            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.i_groupNumber AS 'groupNumber' , pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id ORDER BY pt.dt_creationdate DESC", []);
+            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.i_groupNumber AS 'groupNumber' , pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id WHERE pt.b_isDeleted = 0 ORDER BY pt.dt_creationdate DESC", []);
             if (dbRes[0]) {
                 console.log(dbRes[0]);
                 res.sendStatus(500);
@@ -266,7 +266,7 @@ module.exports.get = async (app) => {
                     return;
                 }
             }
-            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.i_groupNumber AS 'groupNumber' , pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id WHERE pt.i_id = ?", [req.params.id]);
+            const dbRes = await app.executeQuery(app.db, "SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName', tpt.v_name AS 'projectType', pt.i_groupNumber AS 'groupNumber' , pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate', pt.i_step AS 'step', pt.b_waitingAnswer AS 'waitingAnswer', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' FROM `printstickets` AS pt INNER JOIN users AS u ON pt.i_idUser = u.i_id INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id WHERE pt.i_id = ? AND pt.b_isDeleted = 0", [req.params.id]);
             if (dbRes[0]) {
                 console.log(dbRes[0]);
                 res.sendStatus(500);
@@ -411,6 +411,95 @@ module.exports.post = async (app) => {
             res.json(lastIdentityRes[1][0])
         } catch (error) {
             console.log("ERROR: POST /api/ticket/");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+}
+
+/**
+ * @swagger
+ * /ticket/{id}:
+ *   delete:
+ *     summary: Delete the selected ticket.
+ *     tags: [Ticket]
+ *     parameters:
+ *     - name: dvflCookie
+ *       in: header
+ *       description: Cookie of the user making the request
+ *       required: true
+ *       type: string
+ *     - name: "id"
+ *       in: "path"
+ *       description: "Id of the ticket"
+ *       required: true
+ *       type: "integer"
+ *       format: "int64"
+ *     responses:
+ *       "200":
+ *         description: "The ticket is deleted."
+ *       "204":
+ *         description: "No data changed."
+ *       401:
+ *        description: "The user is unauthenticated"
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+module.exports.deleteWithId = async (app) => {
+    app.delete("/api/ticket/:id", async function (req, res) {
+        try {
+            const dvflcookie = req.headers.dvflcookie;
+            // unauthenticated user
+            if (!dvflcookie) {
+                res.sendStatus(401);
+                return;
+            }
+            // if the user is not allowed
+            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
+            if (!userIdAgent) {
+                res.sendStatus(401);
+                return;
+            }
+            const resGetUserTicket = await app.executeQuery(app.db, "SELECT `i_idUser` AS 'id', `b_isDeleted` AS 'isDeleted' FROM `printstickets` WHERE i_id = ?", [req.params.id]);
+            if (resGetUserTicket[0] || resGetUserTicket[1].length > 1) {
+                console.log(resGetUserTicket[0]);
+                res.sendStatus(500);
+                for (const file of files) {
+                    fs.unlinkSync(file.tempFilePath);
+                }
+                return;
+            }
+            if (resGetUserTicket[1].length < 1) {
+                res.sendStatus(400);
+                for (const file of files) {
+                    fs.unlinkSync(file.tempFilePath);
+                }
+                return;
+            }
+            const idTicketUser = resGetUserTicket[1][0].id;
+            if (idTicketUser != userIdAgent) {
+                const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "myFabAgent");
+                if (!authViewResult) {
+                    res.sendStatus(403);
+                    return;
+                }
+            }
+
+            const resDeleteTicket = await app.executeQuery(app.db, "UPDATE `printstickets` SET `b_isDeleted` = '1' WHERE `i_id` = ?;", [req.params.id]);
+            if (resDeleteTicket[0]) {
+                console.log(resDeleteTicket[0]);
+                res.sendStatus(500);
+                return;
+            } else if (resDeleteTicket[0] || resDeleteTicket[1].changedRows !== 1) {
+                res.sendStatus(204);
+                return;
+            }
+
+            //return response
+            res.sendStatus(200);
+        } catch (error) {
+            console.log("ERROR: GET /api/ticket/me/");
             console.log(error);
             res.sendStatus(500);
         }
