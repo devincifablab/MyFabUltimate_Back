@@ -52,7 +52,7 @@ function makeid(length) {
  *        description: "Internal error with the request"
  */
 
-module.exports.post = async ( app) => {
+module.exports.post = async (app) => {
     app.post("/api/user/register/", async function (req, res) {
         try {
             // The body does not have all the necessary field
@@ -112,7 +112,7 @@ module.exports.post = async ( app) => {
 
             //Send validation email to the user
             if (sendMail) {
-                console.log("Mail send");
+                require('../../functions/sendMail').sendMail(req.body.email, "[MyFab] Validation de mail", "Bonjour,\nPour valider votre mail merci de cliquer sur ce lien\n" + tocken);
             }
 
             res.sendStatus(200);

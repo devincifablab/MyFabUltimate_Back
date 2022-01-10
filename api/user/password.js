@@ -216,7 +216,7 @@ module.exports.put = async (app) => {
  * @swagger
  * /user/forgottenPassword/:
  *   post:
- *     summary: Send an email to reset password
+ *     summary: Send an email to reset password, if the request will be accepted if the email is valid and when it is incorrect
  *     tags: [User]
  *     requestBody:
  *       description: "Email of the user"
@@ -271,7 +271,7 @@ module.exports.postForgottenPassword = async (app) => {
 
             //Send validation email to the user
             if (sendMail) {
-                console.log("Mail send");
+                require('../../functions/sendMail').sendMail(email, "[MyFab] Réinitialisation du mot de passe", "Bonjour,\nPour valider votre mail merci de cliquer sur ce lien\n" + tocken);
             }
 
             res.sendStatus(200);
@@ -332,7 +332,7 @@ module.exports.putResetPassword = async (app) => {
                 return;
             }
             if (dbSelectId[1].length != 1) {
-                res.sendStatus(500);
+                res.sendStatus(401);
                 return;
             }
 

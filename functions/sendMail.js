@@ -1,8 +1,18 @@
 const nodemailer = require('nodemailer');
 const config = require('../config.json');
+const activateMail = false;
 
 
 module.exports.sendMail = async (userMail, subject, text) => {
+    if (!activateMail) {
+        console.log("The mail sender is deactivated");
+        console.log({
+            userMail: userMail,
+            subject: subject,
+            text: text
+        });
+        return;
+    }
     if (!config.mail) {
         console.log("Mail configuration not configured");
         return;
