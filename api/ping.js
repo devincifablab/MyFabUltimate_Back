@@ -35,6 +35,7 @@ module.exports.get = (app) => {
         } catch (error) {
             console.log("ERROR: GET /api/ping/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -68,6 +69,7 @@ module.exports.post = (app) => {
         } catch (error) {
             console.log("ERROR: POST /api/ping/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -101,6 +103,7 @@ module.exports.put = (app) => {
         } catch (error) {
             console.log("ERROR: PUT /api/ping/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -134,6 +137,7 @@ module.exports.delete = (app) => {
         } catch (error) {
             console.log("ERROR: DELETE /api/ping/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

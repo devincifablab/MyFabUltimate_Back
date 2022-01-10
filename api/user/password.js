@@ -101,6 +101,7 @@ module.exports.putMe = async (app) => {
         } catch (error) {
             console.log("ERROR: PUT /user/password/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -206,6 +207,7 @@ module.exports.put = async (app) => {
         } catch (error) {
             console.log("ERROR: PUT /user/password/:id");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -244,7 +246,6 @@ module.exports.postForgottenPassword = async (app) => {
                 return;
             }
 
-            console.log(email);
             const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id` FROM `users` WHERE `v_email` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [email]);
             // The sql request has an error
             if (dbRes[0]) {
@@ -277,6 +278,7 @@ module.exports.postForgottenPassword = async (app) => {
         } catch (error) {
             console.log("ERROR: POST /api/user/forgottenPassword/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -355,6 +357,7 @@ module.exports.putResetPassword = async (app) => {
         } catch (error) {
             console.log("ERROR: PUT /api/user/password/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

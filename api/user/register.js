@@ -63,7 +63,7 @@ module.exports.post = async ( app) => {
             const resTestIfAccountExist = await app.executeQuery(app.db, "SELECT 1 FROM `users` WHERE v_email = ?;", [req.body.email]);
             // Error with the sql request
             if (resTestIfAccountExist[0]) {
-                console.log(dbRes[0]);
+                console.log(resTestIfAccountExist[0]);
                 res.sendStatus(500);
                 return;
             }
@@ -119,6 +119,7 @@ module.exports.post = async ( app) => {
         } catch (error) {
             console.log("ERROR: POST /user/register/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

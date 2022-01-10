@@ -126,6 +126,7 @@ module.exports.getMe = async (app) => {
         } catch (error) {
             console.log("ERROR: GET /api/ticket/me/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -189,6 +190,7 @@ module.exports.getAll = async (app) => {
         } catch (error) {
             console.log("ERROR: GET /api/ticket/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -278,6 +280,7 @@ module.exports.get = async (app) => {
         } catch (error) {
             console.log("ERROR: GET /api/ticket/:id/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -504,6 +507,7 @@ module.exports.putProjectType = async (app) => {
         } catch (error) {
             console.log("ERROR: PUT /api/ticket/:id/setProjecttype/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -588,6 +592,7 @@ module.exports.putNewStep = async (app) => {
         } catch (error) {
             console.log("ERROR: PUT /api/ticket/:id/setStep/:newStep");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -674,6 +679,7 @@ module.exports.putNewWaitingAnswer = async (app) => {
         } catch (error) {
             console.log("ERROR: PUT /api/ticket/:id/setStep/:newStep");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

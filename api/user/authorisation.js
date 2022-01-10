@@ -45,6 +45,7 @@ module.exports.get = async (app) => {
         } catch (error) {
             console.log("ERROR: POST /user/register/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

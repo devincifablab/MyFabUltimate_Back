@@ -64,6 +64,7 @@ module.exports.put = async (app) => {
         } catch (error) {
             console.log("ERROR: PUT /user/mailValidation/:tocken");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

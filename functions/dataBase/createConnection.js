@@ -24,7 +24,6 @@ module.exports.open = async (callback) => {
                 console.log("\n\nerror for the sql connection");
                 throw err.code;
             }
-
             db.query("USE ??", [config.db.database], function (error, results, fields) {
                 if (callback) callback(db);
                 resolve(db);
