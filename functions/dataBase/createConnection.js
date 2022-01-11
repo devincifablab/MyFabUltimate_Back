@@ -21,8 +21,8 @@ module.exports.open = async (callback) => {
     return await new Promise((resolve, reject) => {
         db.connect(function (err) {
             if (err) {
-                console.log("\n\nerror for the sql connection");
-                throw err.code;
+                console.log("Can not reach the database");
+                process.exit(1);
             }
             db.query("USE ??", [config.db.database], function (error, results, fields) {
                 if (callback) callback(db);

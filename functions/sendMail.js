@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 const config = require('../config.json');
-const activateMail = false;
+const activateMail = (config.mail && config.mail.activateMail) ? config.mail.activateMail : false;
 
 
 module.exports.sendMail = async (userMail, subject, text) => {

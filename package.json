@@ -1,10 +1,11 @@
 {
   "name": "myfabultimate_back",
   "description": "",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "dev": "nodemon",
     "test": "node tests/runTests.js",
     "prepareDb": "node importSqlTables.js"
   },
