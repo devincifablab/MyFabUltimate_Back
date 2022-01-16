@@ -16,7 +16,8 @@ Bonjour ! Vous vous trouvez actuellement sur le respository de MyFab mais côté
     },
     "url": "http://localhost:",
     "port": 5000,
-    "showSwagger": true
+    "showSwagger": true,
+    "ghost_key": "test"
 }
 ```
  6. Créer la base de donnée `myFabUltimate`.

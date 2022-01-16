@@ -159,24 +159,28 @@ module.exports.put = async (app) => {
                 res.sendStatus(401);
                 return;
             }
-            const userTarget = app.cookiesList[dvflcookie];
-            if (!userTarget) {
+            const userIdAgent = app.cookiesList[dvflcookie];
+            if (!userIdAgent) {
+                console.log("a");
                 res.sendStatus(401);
                 return;
             }
             // if the user is not allowed
             const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
             if (!authViewResult) {
+                console.log("b");
                 res.sendStatus(401);
                 return;
             }
             const authManageUsersResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "manageUser");
             if (!authManageUsersResult) {
+                console.log("c");
                 res.sendStatus(401);
                 return;
             }
             // The body does not have all the necessary field or id is not a number
             if (isNaN(idUserTarget) || !req.body.actualPassword || !req.body.newPassword) {
+                console.log("d");
                 res.sendStatus(400);
                 return;
             }
