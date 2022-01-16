@@ -26,8 +26,6 @@ const axios = require("axios");
  *                   type: string
  *               example:
  *                 dvflCookie: "cookieValue"
- *       204:
- *        description: "The account is not from the devinci network."
  *       400:
  *        description: "The body does not have all the necessary field"
  *       401:
@@ -36,8 +34,8 @@ const axios = require("axios");
  *        description: "Internal error with the request"
  */
 
-module.exports.get = async (app) => {
-    app.get("/api/user/login/microsoft", async function (req, res) {
+module.exports.post = async (app) => {
+    app.post("/api/user/login/microsoft", async function (req, res) {
         try {
             const token = req.headers.authorization;
             // The body does not have all the necessary field
