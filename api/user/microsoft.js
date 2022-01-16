@@ -131,7 +131,7 @@ module.exports.post = async (app) => {
                     })
             })
         } catch (error) {
-            console.log("ERROR: POST /api/user/login/");
+            console.log("ERROR: POST api/user/login/microsoft/:tocken");
             console.log(error);
             res.sendStatus(500);
         }
