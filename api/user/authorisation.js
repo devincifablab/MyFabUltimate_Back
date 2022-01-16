@@ -1,6 +1,6 @@
 /**
  * @swagger
- * /user/authorization/{authName}:
+ * /user/authorization/:
  *   get:
  *     summary: Return true of false if the user is allowed to access to the ressource asked
  *     tags: [Role]
@@ -10,12 +10,6 @@
  *       description: Cookie of the user making the request
  *       required: true
  *       type: string
- *     - name: "authName"
- *       in: "path"
- *       description: "Name of the autorization. The value accepted are 'viewUsers', 'manageUser', 'changeUserRole', 'changeUserProtectedRole', 'myFabAgent'"
- *       required: true
- *       type: "integer"
- *       format: "int64"
  *     responses:
  *       200:
  *         description: Account created successfully and an email was sent
@@ -28,10 +22,10 @@
  */
 
 module.exports.get = async (app) => {
-    app.get("/api/user/authorization/:authName", async function (req, res) {
+    app.get("/api/user/authorization/", async function (req, res) {
         try {
             // The body does not have all the necessary field
-            if (!req.params.authName || !req.headers.dvflcookie) {
+            if (!req.headers.dvflcookie) {
                 res.sendStatus(400);
                 return;
             }
@@ -40,7 +34,7 @@ module.exports.get = async (app) => {
                 res.sendStatus(401);
                 return;
             }
-            const result = await require("../../functions/userAuthorization").validateUserAuth(app, userId, req.params.authName);
+            const result = await require("../../functions/userAuthorization").getUserAuth(app, userId);
             res.json(result);
         } catch (error) {
             console.log("ERROR: POST /user/register/");
