@@ -378,7 +378,7 @@ module.exports.put = async (app) => {
                 return;
             }
             const idTicket = req.params.id;
-            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
+            const userIdAgent = app.cookiesList[dvflcookie];
 
             const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "myFabAgent");
             if (!authViewResult) {
