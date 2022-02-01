@@ -124,7 +124,7 @@ module.exports.getAll = async (app) => {
                 res.sendStatus(403);
                 return;
             }
-            const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS `firstName`, `v_lastName` AS `lastName`, `v_email` AS `email` FROM `users` WHERE `b_deleted` = 0 AND `b_visible` = 1', []);
+            const dbRes = await app.executeQuery(app.db, "SELECT `i_id` AS `id`, `v_firstName` AS `firstName`, `v_lastName` AS `lastName`, CONCAT(v_firstName, ' ', LEFT(v_lastName, 1), '.') AS userName , `v_email` AS `email` FROM `users` WHERE `b_deleted` = 0 AND `b_visible` = 1", []);
             if (dbRes[0]) {
                 console.log(dbRes[0]);
                 res.sendStatus(500);
@@ -176,7 +176,7 @@ module.exports.getMe = async (app) => {
                 res.sendStatus(401);
                 return;
             }
-            const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", `b_isMicrosoft` AS "isMicrosoft", `v_title` AS "title", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [userId, userId]);
+            const dbRes = await app.executeQuery(app.db, "SELECT `i_id` AS `id`, `v_firstName` AS firstName, `v_lastName` AS lastName , CONCAT(v_firstName, ' ', LEFT(v_lastName, 1), '.') AS userName , `v_email` AS email, `dt_creationdate` AS creationDate, `v_discordid` AS discordid,`v_language` AS language, `b_isMicrosoft` AS isMicrosoft, `v_title` AS title, (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS acceptedRule, `b_mailValidated` AS mailValidated FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1", [userId, userId]);
             // The sql request has an error
             if (dbRes[0]) {
                 console.log(dbRes[0]);
@@ -237,7 +237,7 @@ module.exports.getMe = async (app) => {
  *        description: "Internal error with the request"
  */
 
-module.exports.get = async (app) => {
+module.exports.getId = async (app) => {
     app.get("/api/user/:id", async function (req, res) {
         try {
             const dvflcookie = req.headers.dvflcookie;
@@ -258,7 +258,7 @@ module.exports.get = async (app) => {
                 res.sendStatus(403);
                 return;
             }
-            const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [idUserTarget, idUserTarget]);
+            const dbRes = await app.executeQuery(app.db, "SELECT `i_id` AS `id`, `v_firstName` AS firstName, `v_lastName` AS lastName , CONCAT(v_firstName, ' ', LEFT(v_lastName, 1), '.') AS userName , `v_email` AS email, `dt_creationdate` AS creationDate, `v_discordid` AS discordid,`v_language` AS language, (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS acceptedRule, `b_mailValidated` AS mailValidated FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1", [idUserTarget, idUserTarget]);
             // The sql request has an error
             if (dbRes[0]) {
                 console.log(dbRes[0]);

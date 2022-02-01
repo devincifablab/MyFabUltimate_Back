@@ -31,10 +31,6 @@ CREATE TABLE IF NOT EXISTS `log_ticketsChange` ( `i_id` INT NOT NULL AUTO_INCREM
 ALTER TABLE `log_ticketsChange` ADD CONSTRAINT `ltc_idUser` FOREIGN KEY IF NOT EXISTS (`i_idUser`) REFERENCES `users`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 ALTER TABLE `log_ticketsChange` ADD CONSTRAINT `ltc_idTickets` FOREIGN KEY IF NOT EXISTS (`i_idTicket`) REFERENCES `printstickets`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
-CREATE TABLE IF NOT EXISTS `log_priorityChange` ( `i_id` INT NOT NULL AUTO_INCREMENT , `i_idUser` INT(11) NOT NULL , `i_newPriority` INT(3) NOT NULL , `dt_changeDate` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
-ALTER TABLE `log_priorityChange` ADD CONSTRAINT `lpc_idUser` FOREIGN KEY IF NOT EXISTS (`i_idUser`) REFERENCES `users`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE `log_priorityChange` ADD CONSTRAINT `lpc_idPriority` FOREIGN KEY IF NOT EXISTS (`i_newPriority`) REFERENCES `gd_ticketPriority`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-
 CREATE TABLE IF NOT EXISTS `gd_ticketprojecttype` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_name` VARCHAR(50) NOT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
 ALTER TABLE `printstickets` ADD CONSTRAINT `pt_projecttype` FOREIGN KEY IF NOT EXISTS (`i_projecttype`) REFERENCES `gd_ticketprojecttype`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 

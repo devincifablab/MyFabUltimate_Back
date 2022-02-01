@@ -125,7 +125,7 @@ module.exports.getMe = async (app) => {
              INNER JOIN gd_status AS stat ON pt.i_status = stat.i_id
              WHERE pt.i_idUser = ? AND pt.b_isDeleted = 0 ORDER BY pt.dt_creationdate DESC`;
 
-            const dbRes = await app.executeQuery(app.db, query,[userIdAgent]);
+            const dbRes = await app.executeQuery(app.db, query, [userIdAgent]);
             if (dbRes[0]) {
                 console.log(dbRes[0]);
                 res.sendStatus(500);
@@ -274,9 +274,12 @@ module.exports.get = async (app) => {
                 return;
             }
             const resGetUserTicket = await app.executeQuery(app.db, "SELECT `i_idUser` AS 'id' FROM `printstickets` WHERE i_id = ?", [req.params.id]);
-            if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
+            if (resGetUserTicket[0]) {
                 console.log(resGetUserTicket[0]);
                 res.sendStatus(500);
+                return;
+            } else if (resGetUserTicket[1].length !== 1) {
+                res.sendStatus(204);
                 return;
             }
             const idTicketUser = resGetUserTicket[1][0].id;
@@ -297,18 +300,76 @@ module.exports.get = async (app) => {
              INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id 
              INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id
              INNER JOIN gd_status AS stat ON pt.i_status = stat.i_id
-             WHERE pt.i_id = ? AND pt.b_isDeleted = 0`
+             WHERE pt.i_id = ? AND pt.b_isDeleted = 0`;
             const dbRes = await app.executeQuery(app.db, query, [req.params.id]);
             if (dbRes[0]) {
                 console.log(dbRes[0]);
                 res.sendStatus(500);
                 return;
             }
-            if (dbRes[1].length !== 1) {
+            if (dbRes[1] == null || dbRes[1].length !== 1) {
                 res.sendStatus(204);
                 return;
             }
-            res.json(dbRes[1][0])
+            const result = dbRes[1][0];
+
+            const querySelectLogUpdProjectType = `SELECT
+            CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '. a changé le type de projet en ', gdtpt.v_name) AS message,
+            ltc.dt_timeStamp AS timeStamp
+            FROM log_ticketschange AS ltc
+            INNER JOIN users AS u ON ltc.i_idUser = u.i_id
+            INNER JOIN gd_ticketprojecttype AS gdtpt ON ltc.v_newValue = gdtpt.i_id
+            WHERE i_idTicket = ? AND v_action = 'upd_projType'
+            ORDER BY ltc.dt_timeStamp ASC`;
+            const dbResSelectLogUpdProjectType = await app.executeQuery(app.db, querySelectLogUpdProjectType, [req.params.id]);
+            if (dbResSelectLogUpdProjectType[0]) {
+                console.log(dbResSelectLogUpdProjectType[0]);
+                res.sendStatus(500);
+                return;
+            }
+            result.history = dbResSelectLogUpdProjectType[1];
+
+            const querySelectLogUpdStatus = `SELECT
+            CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '. a changé le status projet en : ', gds.v_name) AS message,
+            ltc.dt_timeStamp AS timeStamp
+            FROM log_ticketschange AS ltc
+            INNER JOIN users AS u ON ltc.i_idUser = u.i_id
+            INNER JOIN gd_status AS gds ON ltc.v_newValue = gds.i_id
+            WHERE i_idTicket = ? AND v_action = 'upd_status'
+            ORDER BY ltc.dt_timeStamp ASC`;
+            const dbResSelectLogStatus = await app.executeQuery(app.db, querySelectLogUpdStatus, [req.params.id]);
+            if (dbResSelectLogStatus[0]) {
+                console.log(dbResSelectLogStatus[0]);
+                res.sendStatus(500);
+                return;
+            }
+            for (const elem of dbResSelectLogStatus[1]) {
+                result.history.push(elem);
+            }
+
+            const querySelectLogPriority = `SELECT
+            CONCAT('La priorité du ticket est passé en : ', gdtp.v_name) AS message,
+            dt_timeStamp AS timeStamp
+            FROM log_ticketschange AS ltc
+            INNER JOIN gd_ticketpriority AS gdtp ON ltc.v_newValue = gdtp.i_id
+            WHERE i_idTicket = ? AND v_action = 'upd_priority'`;
+            const dbResSelectLogPriority = await app.executeQuery(app.db, querySelectLogPriority, [req.params.id]);
+            if (dbResSelectLogPriority[0]) {
+                console.log(dbResSelectLogPriority[0]);
+                res.sendStatus(500);
+                return;
+            }
+            for (const elem of dbResSelectLogPriority[1]) {
+                result.history.push(elem);
+            }
+
+
+
+            result.history.sort(function (a, b) {
+                return new Date(b.timeStamp) - new Date(a.timeStamp);
+            });
+
+            res.json(result);
         } catch (error) {
             console.log("ERROR: GET /api/ticket/:id/");
             console.log(error);
@@ -606,14 +667,20 @@ module.exports.putProjectType = async (app) => {
                 return;
             }
 
-            const resTestIfRoleExist = await app.executeQuery(app.db, "SELECT 1 FROM `gd_ticketprojecttype` WHERE i_id = ?", [req.body.projecttype]);
+            const querySelect = `SELECT 1
+            FROM gd_ticketprojecttype
+            WHERE i_id = ?`;
+            const resTestIfRoleExist = await app.executeQuery(app.db, querySelect, [req.body.projecttype]);
             if (resTestIfRoleExist[0]) {
                 console.log(resTestIfRoleExist[0]);
                 res.sendStatus(500);
                 return;
             }
 
-            const resUpdate = await app.executeQuery(app.db, "UPDATE `printstickets` SET `i_projecttype` = ? WHERE `i_id` = ?", [req.body.projecttype, req.params.id]);
+            const queryUpdate = `UPDATE printstickets
+            SET i_projecttype = ?
+            WHERE i_id = ?`;
+            const resUpdate = await app.executeQuery(app.db, queryUpdate, [req.body.projecttype, req.params.id]);
             if (resUpdate[0]) {
                 console.log(resUpdate[0]);
                 res.sendStatus(500);
@@ -624,7 +691,18 @@ module.exports.putProjectType = async (app) => {
                 res.sendStatus(204);
                 return;
             }
-            res.json(resUpdate[1][0])
+
+            const queryInsertLog = `INSERT INTO log_ticketschange
+            (i_idUser, i_idTicket, v_action, v_newValue)
+            VALUES (?, ?, 'upd_projType', ?)`;
+            const resInsertLog = await app.executeQuery(app.db, queryInsertLog, [userIdAgent, req.params.id, req.body.projecttype]);
+            if (resInsertLog[0]) {
+                console.log(resInsertLog[0]);
+                res.sendStatus(500);
+                return;
+            }
+
+            res.json(resUpdate[1][0]);
         } catch (error) {
             console.log("ERROR: PUT /api/ticket/:id/setProjecttype/");
             console.log(error);
@@ -711,6 +789,17 @@ module.exports.putNewStatus = async (app) => {
                 res.sendStatus(204);
                 return;
             }
+
+            const queryInsertLog = `INSERT INTO log_ticketschange
+            (i_idUser, i_idTicket, v_action, v_newValue)
+            VALUES (?, ?, 'upd_status', ?)`;
+            const resInsertLog = await app.executeQuery(app.db, queryInsertLog, [userIdAgent, req.params.id, idStatus]);
+            if (resInsertLog[0]) {
+                console.log(resInsertLog[0]);
+                res.sendStatus(500);
+                return;
+            }
+
             res.sendStatus(200);
         } catch (error) {
             console.log("ERROR: PUT /api/ticket/:id/setStatus");
