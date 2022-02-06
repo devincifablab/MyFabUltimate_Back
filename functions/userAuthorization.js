@@ -1,3 +1,7 @@
+const sha256 = require("sha256");
+const config = require("../config.json");
+
+
 const authReducer = (previousValue, currentValue) => {
     const keys = Object.keys(currentValue);
     for (const key of keys) {
@@ -31,10 +35,10 @@ async function getUserAuth(app, userId) {
         res.sendStatus(500);
         return;
     }
-    if (resTestIfCorrelationExist[1].length===0) {
-        const emptyRes={};
+    if (resTestIfCorrelationExist[1].length === 0) {
+        const emptyRes = {};
         for (const column of resDescGdRole[1]) {
-            if (!banColumn.includes(column.Field)) emptyRes[column.Field.split("_")[1]]=0;
+            if (!banColumn.includes(column.Field)) emptyRes[column.Field.split("_")[1]] = 0;
         }
         return emptyRes;
     }
@@ -44,6 +48,15 @@ async function getUserAuth(app, userId) {
 
 module.exports.validateUserAuth = async (app, userId, authName) => {
     const userAuth = await getUserAuth(app, userId);
-    if (userAuth[authName]=== 1||userAuth[authName]=== 0) return userAuth[authName] ? true : false;
+    if (userAuth[authName] === 1 || userAuth[authName] === 0) return userAuth[authName] ? true : false;
     else return null;
+}
+
+module.exports.getSpecialCode = async () => {
+    if (!config.specialTocken) {
+        return false;
+    }
+    const nowDate = new Date();
+    const tocken = sha256(config.specialTocken + (nowDate.getMonth() + 1) + nowDate.getFullYear() + nowDate.getHours() + nowDate.getMinutes());
+    return tocken;
 }
