@@ -12,7 +12,7 @@
  *       type: string
  *     - name: "authName"
  *       in: "path"
- *       description: "Id of user"
+ *       description: "Name of the autorization. The value accepted are 'viewUsers', 'manageUser', 'changeUserRole', 'changeUserProtectedRole', 'myFabAgent'"
  *       required: true
  *       type: "integer"
  *       format: "int64"
@@ -45,6 +45,7 @@ module.exports.get = async (app) => {
         } catch (error) {
             console.log("ERROR: POST /user/register/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

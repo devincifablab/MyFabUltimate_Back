@@ -31,6 +31,8 @@ const sha256 = require("sha256");
  *                   type: string
  *               example:
  *                 dvflCookie: "cookieValue"
+ *       204:
+ *        description: "The user haven't confirmed their mail"
  *       400:
  *        description: "The body does not have all the necessary field"
  *       401:
@@ -47,7 +49,7 @@ module.exports.post = async (app) => {
                 res.sendStatus(400);
                 return;
             }
-            const dbRes = await app.executeQuery(app.db, "SELECT `i_id` AS 'id' FROM `users` WHERE `v_email` = ? AND `v_password` = ?;", [req.body.email, sha256(req.body.password)]);
+            const dbRes = await app.executeQuery(app.db, "SELECT `i_id` AS 'id', `b_mailValidated` AS 'mailValidated' FROM `users` WHERE `v_email` = ? AND `v_password` = ?;", [req.body.email, sha256(req.body.password)]);
             // Error with the sql request
             if (dbRes[0]) {
                 console.log(dbRes[0]);
@@ -66,6 +68,11 @@ module.exports.post = async (app) => {
                 return;
             }
 
+            const mailValidated = dbRes[1][0].mailValidated;
+            if (mailValidated === 0) {
+                res.sendStatus(204);
+                return;
+            }
             const id = dbRes[1][0].id;
             const cookie = sha256((new Date().toISOString() + id + req.body.email).split('').sort(function () {
                 return 0.5 - Math.random()
@@ -78,6 +85,7 @@ module.exports.post = async (app) => {
         } catch (error) {
             console.log("ERROR: POST /api/user/login/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

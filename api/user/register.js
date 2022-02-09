@@ -52,7 +52,7 @@ function makeid(length) {
  *        description: "Internal error with the request"
  */
 
-module.exports.post = async ( app) => {
+module.exports.post = async (app) => {
     app.post("/api/user/register/", async function (req, res) {
         try {
             // The body does not have all the necessary field
@@ -63,7 +63,7 @@ module.exports.post = async ( app) => {
             const resTestIfAccountExist = await app.executeQuery(app.db, "SELECT 1 FROM `users` WHERE v_email = ?;", [req.body.email]);
             // Error with the sql request
             if (resTestIfAccountExist[0]) {
-                console.log(dbRes[0]);
+                console.log(resTestIfAccountExist[0]);
                 res.sendStatus(500);
                 return;
             }
@@ -112,13 +112,14 @@ module.exports.post = async ( app) => {
 
             //Send validation email to the user
             if (sendMail) {
-                console.log("Mail send");
+                require('../../functions/sendMail').sendMail(req.body.email, "[MyFab] Validation de mail", "Bonjour,\nPour valider votre mail merci de cliquer sur ce lien\n" + tocken);
             }
 
             res.sendStatus(200);
         } catch (error) {
             console.log("ERROR: POST /user/register/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

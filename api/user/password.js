@@ -101,6 +101,7 @@ module.exports.putMe = async (app) => {
         } catch (error) {
             console.log("ERROR: PUT /user/password/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -158,24 +159,28 @@ module.exports.put = async (app) => {
                 res.sendStatus(401);
                 return;
             }
-            const userTarget = app.cookiesList[dvflcookie];
-            if (!userTarget) {
+            const userIdAgent = app.cookiesList[dvflcookie];
+            if (!userIdAgent) {
+                console.log("a");
                 res.sendStatus(401);
                 return;
             }
             // if the user is not allowed
             const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
             if (!authViewResult) {
+                console.log("b");
                 res.sendStatus(401);
                 return;
             }
             const authManageUsersResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "manageUser");
             if (!authManageUsersResult) {
+                console.log("c");
                 res.sendStatus(401);
                 return;
             }
             // The body does not have all the necessary field or id is not a number
             if (isNaN(idUserTarget) || !req.body.actualPassword || !req.body.newPassword) {
+                console.log("d");
                 res.sendStatus(400);
                 return;
             }
@@ -206,6 +211,7 @@ module.exports.put = async (app) => {
         } catch (error) {
             console.log("ERROR: PUT /user/password/:id");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -214,7 +220,7 @@ module.exports.put = async (app) => {
  * @swagger
  * /user/forgottenPassword/:
  *   post:
- *     summary: Send an email to reset password
+ *     summary: Send an email to reset password, if the request will be accepted if the email is valid and when it is incorrect
  *     tags: [User]
  *     requestBody:
  *       description: "Email of the user"
@@ -244,7 +250,6 @@ module.exports.postForgottenPassword = async (app) => {
                 return;
             }
 
-            console.log(email);
             const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id` FROM `users` WHERE `v_email` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [email]);
             // The sql request has an error
             if (dbRes[0]) {
@@ -270,13 +275,14 @@ module.exports.postForgottenPassword = async (app) => {
 
             //Send validation email to the user
             if (sendMail) {
-                console.log("Mail send");
+                require('../../functions/sendMail').sendMail(email, "[MyFab] Réinitialisation du mot de passe", "Bonjour,\nPour valider votre mail merci de cliquer sur ce lien\n" + tocken);
             }
 
             res.sendStatus(200);
         } catch (error) {
             console.log("ERROR: POST /api/user/forgottenPassword/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -330,7 +336,7 @@ module.exports.putResetPassword = async (app) => {
                 return;
             }
             if (dbSelectId[1].length != 1) {
-                res.sendStatus(500);
+                res.sendStatus(401);
                 return;
             }
 
@@ -355,6 +361,7 @@ module.exports.putResetPassword = async (app) => {
         } catch (error) {
             console.log("ERROR: PUT /api/user/password/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

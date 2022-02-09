@@ -432,3 +432,157 @@ async function startApi(app) {
         }
     })
 }
+
+/**
+ * @swagger
+ * /user/discord/link/:
+ *   get:
+ *     summary: Get the link to connect to a Discord account
+ *     tags: [User]
+ *     responses:
+ *       200:
+ *         description: Get the link to connect to a Discord account
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *               example:
+ *                 result: https://discord.com/oauth2/authorize?client_id=Bas%20non%20ce%20lien%20marche%20pô&redirect_uri=http%3A%2F%2Flocalhost%2FdiscordConnection&response_type=code&scope=identify
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+const config = require("../config.json");
+module.exports.get = (app) => {
+    app.get("/api/user/discord/link/", async function (req, res) {
+        try {
+            if (!config.bot || !config.bot.clientId) {
+                console.log("Discord link with MyFab not configured");
+                res.sendStatus(500);
+                return;
+            }
+            res.json({
+                result: "https://discord.com/oauth2/authorize?client_id=" + config.bot.clientId + "&redirect_uri=http%3A%2F%2Flocalhost%2FdiscordConnection&response_type=code&scope=identify"
+            })
+        } catch (error) {
+            console.log("ERROR: GET /api/user/discord/link/");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+}
+
+/**
+ * @swagger
+ * /user/discord/{code}:
+ *   post:
+ *     summary: Link discord account with MyFab
+ *     tags: [User]
+ *     parameters:
+ *     - name: "code"
+ *       in: "path"
+ *       description: "Discord tocken for the user"
+ *       required: true
+ *       type: string
+ *     - name: dvflCookie
+ *       in: header
+ *       description: Cookie of the user making the request
+ *       required: true
+ *       type: string
+ *     responses:
+ *       200:
+ *        description: "The user have link his account"
+ *       400:
+ *        description: "The body does not have all the necessary field"
+ *       401:
+ *        description: "The user is unauthenticated"
+ *       403:
+ *        description: "This discord account is already been used or an id is already set for this user"
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+const DiscordOauth2 = require("discord-oauth2");
+module.exports.post = async (app) => {
+    app.post("/api/user/discord/:code", async function (req, res) {
+        try {
+            if (!config.bot || !config.bot.clientId || !config.bot.clientSecret) {
+                console.log("Discord link with MyFab not configured");
+                res.sendStatus(500);
+                return;
+            }
+            const dvflcookie = req.headers.dvflcookie;
+            // unauthenticated user
+            if (!dvflcookie) {
+                res.sendStatus(401);
+                return;
+            }
+            // The body does not have all the necessary field
+            if (!req.params.code) {
+                res.sendStatus(400);
+                return;
+            }
+            const userId = app.cookiesList[dvflcookie];
+            if (!userId) {
+                res.sendStatus(401);
+                return;
+            }
+
+            const oauth = new DiscordOauth2();
+            const access_token = req.params.code;
+            oauth.tokenRequest({
+                clientId: config.bot.clientId,
+                clientSecret: config.bot.clientSecret,
+                code: access_token,
+                scope: "identify",
+                grantType: "authorization_code",
+                redirectUri: (config.url.split(":")[0] + ":" + config.url.split(":")[1]) + "/" + "discordConnection",
+            }).then((result) => {
+                oauth.getUser(result.access_token).then(async (userDiscordData) => {
+                    const querySelect = `SELECT 1 FROM users
+                    WHERE v_discordid = ?
+                    OR (i_id = ?
+                        AND v_discordid IS NOT NULL)`;
+
+                    const dbResSelect = await app.executeQuery(app.db, querySelect, [userDiscordData.id, userId]);
+                    if (dbResSelect[0]) {
+                        console.log(dbResSelect[0]);
+                        res.sendStatus(500);
+                        return;
+                    }
+                    if (dbResSelect[1].length != 0) {
+                        res.sendStatus(403);
+                        return;
+                    }
+
+                    const queryUpdate = `UPDATE users SET v_discordid = ? WHERE i_id = ?;`;
+
+                    const dbResUpdate = await app.executeQuery(app.db, queryUpdate, [userDiscordData.id, userId]);
+                    if (dbResUpdate[0]) {
+                        console.log(dbResUpdate[0]);
+                        res.sendStatus(500);
+                        return;
+                    }
+
+                    res.json({
+                        tag: userDiscordData.username + "#" + userDiscordData.discriminator,
+                        avatar: userDiscordData.avatar ? "https://cdn.discordapp.com/avatars/" + userDiscordData.id + "/" + userDiscordData.avatar + ".webp?size=128" : "https://external-preview.redd.it/4PE-nlL_PdMD5PrFNLnjurHQ1QKPnCvg368LTDnfM-M.png?auto=webp&s=ff4c3fbc1cce1a1856cff36b5d2a40a6d02cc1c3"
+                    })
+                }).catch(() => {
+                    res.sendStatus(500);
+                    return;
+                })
+            }).catch(() => {
+                res.sendStatus(500);
+                return;
+            })
+        } catch (error) {
+            console.log("ERROR: POST /api/user/discord/:code");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+}

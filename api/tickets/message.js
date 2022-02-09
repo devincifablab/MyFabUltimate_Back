@@ -102,6 +102,7 @@ module.exports.get = async (app) => {
         } catch (error) {
             console.log("ERROR: GET /api/ticket/:id/message/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }
@@ -190,6 +191,7 @@ module.exports.post = async (app) => {
         } catch (error) {
             console.log("ERROR: POST /api/ticket/");
             console.log(error);
+            res.sendStatus(500);
         }
     })
 }

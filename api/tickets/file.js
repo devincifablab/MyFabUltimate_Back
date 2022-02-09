@@ -156,7 +156,16 @@ module.exports.getOneFile = async (app) => {
                 res.sendStatus(401);
                 return;
             }
-            const resGetUserTicket = await app.executeQuery(app.db, "SELECT pt.i_idUser AS 'id', tf.v_fileServerName AS 'fileServerName', tf.v_fileName AS 'fileName' FROM `ticketfiles` AS tf INNER JOIN `printstickets` AS pt ON tf.i_idTicket = pt.i_id WHERE tf.i_id = ?", [req.params.id]);
+
+            const query = `SELECT pt.i_idUser AS 'id',
+                tf.v_fileServerName AS 'fileServerName',
+                tf.v_fileName AS 'fileName',
+                gdpt.v_name AS 'projectTypeName'
+                FROM ticketfiles AS tf
+                INNER JOIN printstickets AS pt ON tf.i_idTicket = pt.i_id
+                INNER JOIN gd_ticketprojecttype AS gdpt ON pt.i_projecttype = gdpt.i_id
+                WHERE tf.i_id = ?`;
+            const resGetUserTicket = await app.executeQuery(app.db, query, [req.params.id]);
             if (resGetUserTicket[0] || resGetUserTicket[1].length > 1) {
                 console.log(resGetUserTicket[0]);
                 res.sendStatus(500);
@@ -174,7 +183,7 @@ module.exports.getOneFile = async (app) => {
                     return;
                 }
             }
-            if (fs.existsSync(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName)) res.download(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName, resGetUserTicket[1][0].fileName);
+            if (fs.existsSync(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName)) res.download(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName, (idTicketUser == userIdAgent) ? resGetUserTicket[1][0].fileName : req.params.id + "-" + resGetUserTicket[1][0].projectTypeName + "_" + resGetUserTicket[1][0].fileName);
             else res.sendStatus(204);
         } catch (err) {
             console.log("ERROR: GET /api/file/:id/");
@@ -378,7 +387,7 @@ module.exports.put = async (app) => {
                 return;
             }
             const idTicket = req.params.id;
-            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
+            const userIdAgent = app.cookiesList[dvflcookie];
 
             const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "myFabAgent");
             if (!authViewResult) {
