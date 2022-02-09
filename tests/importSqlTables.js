@@ -8,7 +8,7 @@ module.exports.importSqlTables = async (db, file) => {
                 console.error(err)
                 return
             }
-            const lineData = data.split("\n")
+            const lineData = data.split("\n");
             for (const line of lineData) {
                 if (line !== "\r" || line !== "") {
                     const res = await executeQuery(db, line, []);

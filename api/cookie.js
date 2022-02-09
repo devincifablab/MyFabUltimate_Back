@@ -38,6 +38,7 @@ module.exports.deleteAll = async (app) => {
 }
 
 module.exports.getMe = async (app) => {
+    /*
     app.get("/api/user/me", async function (req, res) {
         try {
             const dvflcookie = req.headers.dvflcookie;
@@ -66,4 +67,5 @@ module.exports.getMe = async (app) => {
             res.sendStatus(500);
         }
     })
+    */
 }

@@ -17,7 +17,6 @@ module.exports = async () => {
     await executeQuery(connection, "USE ??", [dbName]);
     await require("./importSqlTables.js").importSqlTables(connection, __dirname + '/../myFabUltimateDb.sql');
     await require("./importSqlTables.js").importSqlTables(connection, __dirname + '/../globalData.sql');
-    await require("./addTestRoles.js").addTestRoles(connection, executeQuery);
     connection.end();
 };
 

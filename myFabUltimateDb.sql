@@ -16,7 +16,7 @@ ALTER TABLE `log_rolesChange` ADD CONSTRAINT `lrc_idUserAdmin` FOREIGN KEY IF NO
 ALTER TABLE `log_rolesChange` ADD CONSTRAINT `lrc_idUserTarget` FOREIGN KEY IF NOT EXISTS (`i_idUserTarget`) REFERENCES `users`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 ALTER TABLE `log_rolesChange` ADD CONSTRAINT `lrc_idRole` FOREIGN KEY IF NOT EXISTS (`i_idRole`) REFERENCES `gd_roles`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
-CREATE TABLE `myfabultimate`.`gd_status` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_name` VARCHAR(25) NOT NULL , `b_isOpen` BOOLEAN NOT NULL , `v_color` VARCHAR(6) NOT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
+CREATE TABLE `gd_status` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_name` VARCHAR(25) NOT NULL , `b_isOpen` BOOLEAN NOT NULL , `v_color` VARCHAR(6) NOT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `discordticket` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_idGuild` VARCHAR(18) NOT NULL , `v_idChannel` VARCHAR(18) NOT NULL , `v_idUser` VARCHAR(18) NOT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
 

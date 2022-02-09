@@ -304,3 +304,15 @@ describe('GET /api/user/:id', () => {
         expect(response.type).toBe("code");
     })
 })
+
+describe('GET api/user/discord/link/', () => {
+    test('200', async () => {
+        const data = {}
+        const response = await require("../../api/user.js").getDicordLink(data);
+
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("json");
+        expect(Object.keys(response.json).length).toBe(1);
+        expect((response.json.result != null)).toBe(true);
+    })
+})
