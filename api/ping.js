@@ -25,18 +25,15 @@
  *                 result: pong
  */
 
-
-module.exports.get = (app) => {
-    app.get("/api/ping/", async function (req, res) {
-        try {
-            res.json({
-                result: "pong"
-            })
-        } catch (error) {
-            console.log("ERROR: GET /api/ping/");
-            console.log(error);
+module.exports.pingGet = pingGet;
+async function pingGet(data) {
+    return {
+        type: "json",
+        code: 200,
+        json: {
+            result: "pong"
         }
-    })
+    }
 }
 
 /**
@@ -59,17 +56,15 @@ module.exports.get = (app) => {
  *                 result: pong
  */
 
-module.exports.post = (app) => {
-    app.post("/api/ping/", async function (req, res) {
-        try {
-            res.json({
-                result: "pong"
-            })
-        } catch (error) {
-            console.log("ERROR: POST /api/ping/");
-            console.log(error);
+module.exports.pingPost = pingPost;
+async function pingPost(data) {
+    return {
+        type: "json",
+        code: 200,
+        json: {
+            result: "pong"
         }
-    })
+    }
 }
 
 /**
@@ -92,17 +87,15 @@ module.exports.post = (app) => {
  *                 result: pong
  */
 
-module.exports.put = (app) => {
-    app.put("/api/ping/", async function (req, res) {
-        try {
-            res.json({
-                result: "pong"
-            })
-        } catch (error) {
-            console.log("ERROR: PUT /api/ping/");
-            console.log(error);
+module.exports.pingPut = pingPut;
+async function pingPut(data) {
+    return {
+        type: "json",
+        code: 200,
+        json: {
+            result: "pong"
         }
-    })
+    }
 }
 
 /**
@@ -125,15 +118,65 @@ module.exports.put = (app) => {
  *                 result: pong
  */
 
-module.exports.delete = (app) => {
-    app.delete("/api/ping/", async function (req, res) {
+module.exports.pingDelete = pingDelete;
+async function pingDelete(data) {
+    return {
+        type: "json",
+        code: 200,
+        json: {
+            result: "pong"
+        }
+    }
+}
+
+
+module.exports.startApi = startApi;
+async function startApi(app) {
+    app.get("/api/ping/", async function (req, res) {
+        const data = await require("../functions/apiActions").prepareData(app, req, res);
         try {
-            res.json({
-                result: "pong"
-            })
+            const result = await pingGet(data);
+            await require("../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
-            console.log("ERROR: DELETE /api/ping/");
+            console.log("ERROR: GET /api/ping/");
             console.log(error);
+            res.sendStatus(500);
+        }
+    })
+
+    app.post("/api/ping/", async function (req, res) {
+        const data = await require("../functions/apiActions").prepareData(app, req, res);
+        try {
+            const result = await pingPost(data);
+            await require("../functions/apiActions").sendResponse(req, res, result);
+        } catch (error) {
+            console.log("ERROR: POST /api/ping/");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+
+    app.put("/api/ping/", async function (req, res) {
+        const data = await require("../functions/apiActions").prepareData(app, req, res);
+        try {
+            const result = await pingDelete(data);
+            await require("../functions/apiActions").sendResponse(req, res, result);
+        } catch (error) {
+            console.log("ERROR: POST /api/ping/");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+
+    app.delete("/api/ping/", async function (req, res) {
+        const data = await require("../functions/apiActions").prepareData(app, req, res);
+        try {
+            const result = await pingDelete(data);
+            await require("../functions/apiActions").sendResponse(req, res, result);
+        } catch (error) {
+            console.log("ERROR: POST /api/ping/");
+            console.log(error);
+            res.sendStatus(500);
         }
     })
 }

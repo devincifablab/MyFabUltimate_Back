@@ -5,6 +5,7 @@ const expressHeader = require('express-header')
 const fs = require("fs");
 const app = express();
 const config = require(__dirname + "/config.json");
+let server = null;
 
 app.use(bodyParser.urlencoded({
     extended: true
@@ -17,10 +18,18 @@ app.use(fileUpload({
     tempFileDir: __dirname + '\\tmp\\'
 }));
 app.cookiesList = {};
-app.use(expressHeader([
-	{key: 'Access-Control-Allow-Origin', value: '*'},
-	{key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE'},
-	{key: 'Access-Control-Allow-Headers', value: 'Origin, Content-Type, X-Auth-Token, dvflCookie'}
+app.use(expressHeader([{
+        key: 'Access-Control-Allow-Origin',
+        value: '*'
+    },
+    {
+        key: 'Access-Control-Allow-Methods',
+        value: 'GET, POST, PUT, DELETE'
+    },
+    {
+        key: 'Access-Control-Allow-Headers',
+        value: 'Origin, Content-Type, X-Auth-Token, dvflCookie'
+    }
 ]))
 
 if (config.showSwagger) {
@@ -47,7 +56,7 @@ if (config.showSwagger) {
     app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
 }
 
-require("./functions/startApi").run(app);
+require("./functions/apiActions").startApi(app);
 
 //prepare folders
 if (!fs.existsSync(__dirname + '/tmp')) fs.mkdirSync(__dirname + '/tmp');
@@ -67,10 +76,16 @@ async function start() {
 
     //app.bot = require("./discordBot/index").run();
     const port = config.port;
-    app.listen(port);
+    server = app.listen(port);
     console.log();
     console.log("Server is now listening port " + port);
     if (config.showSwagger) console.log("Swagger documentation available here : " + config.url + config.port + "/api-docs");
 }
 
-start()
+start();
+
+module.exports.closeServer = () => {
+    app.db.end();
+    server.close();
+    process.exit(0);
+}

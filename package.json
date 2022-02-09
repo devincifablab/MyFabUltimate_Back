@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "node tests/runTests.js",
+    "test": "jest --coverage",
     "prepareDb": "node importSqlTables.js"
   },
   "repository": {
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "jest": "^27.5.0",
+    "@alex_neo/jest-expect-message": "^1.0.5",
     "swagger-jsdoc": "^6.1.0",
     "swagger-ui-express": "^4.3.0"
   }
