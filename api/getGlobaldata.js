@@ -47,28 +47,27 @@
  *        description: "Internal error with the request"
  */
 
-module.exports.getStatus = async (app) => {
-    app.get("/api/status", async function (req, res) {
-        try {
-
-            const query = `SELECT stat.i_id as id,
+module.exports.getStatus = getStatus;
+async function getStatus(data) {
+    const query = `SELECT stat.i_id as id,
              stat.v_name as name,
              stat.v_color as color
              FROM gd_status AS stat `;
 
-            const dbRes = await app.executeQuery(app.db, query, []);
-            if (dbRes[0]) {
-                console.log(dbRes[0]);
-                res.sendStatus(500);
-                return;
-            }
-            res.json(dbRes[1])
-        } catch (error) {
-            console.log("ERROR: GET /api/ticket/status/");
-            console.log(error);
-            res.sendStatus(500);
+    const dbRes = await data.app.executeQuery(data.app.db, query, []);
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        return {
+            type: "code",
+            code: 500
         }
-    })
+    }
+
+    return {
+        type: "json",
+        code: 200,
+        json: dbRes[1]
+    }
 }
 
 /**
@@ -109,23 +108,51 @@ module.exports.getStatus = async (app) => {
  *        description: "Internal error with the request"
  */
 
-module.exports.getProjectType = async (app) => {
-    app.get("/api/projectType/", async function (req, res) {
-        try {
-
-            const query = `SELECT projType.i_id as id,
+module.exports.getProjectType = getProjectType;
+async function getProjectType(data) {
+    const query = `SELECT projType.i_id as id,
             projType.v_name as name
             FROM gd_ticketprojecttype AS projType `;
 
-            const dbRes = await app.executeQuery(app.db, query, []);
-            if (dbRes[0]) {
-                console.log(dbRes[0]);
-                res.sendStatus(500);
-                return;
-            }
-            res.json(dbRes[1])
+    const dbRes = await data.app.executeQuery(data.app.db, query, []);
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+
+    return {
+        type: "json",
+        code: 200,
+        json: dbRes[1]
+    }
+}
+
+
+module.exports.startApi = startApi;
+async function startApi(app) {
+    app.get("/api/status", async function (req, res) {
+        try {
+            const data = await require("../functions/apiActions").prepareData(app, req, res);
+            const result = await getStatus(data);
+            await require("../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
-            console.log("ERROR: GET /api/ticket/projectType/");
+            console.log("ERROR: GET /api/status/");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+
+
+    app.get("/api/projectType/", async function (req, res) {
+        try {
+            const data = await require("../functions/apiActions").prepareData(app, req, res);
+            const result = await getProjectType(data)
+            await require("../functions/apiActions").sendResponse(req, res, result);
+        } catch (error) {
+            console.log("ERROR: GET /api/projectType/");
             console.log(error);
             res.sendStatus(500);
         }
