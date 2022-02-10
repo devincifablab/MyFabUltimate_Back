@@ -47,12 +47,14 @@ module.exports.startApi = async (app) => {
     })
 }
 
+const userAuthorization = require("../functions/userAuthorization");
 module.exports.prepareData = async (app, req, res) => {
     const data = {
         app: app,
         params: req.params,
         userId: req.headers.dvflcookie ? app.cookiesList[req.headers.dvflcookie] : null,
-        userAuthorization: require("../functions/userAuthorization")
+        specialcode: req.headers.specialcode,
+        userAuthorization: userAuthorization
     };
     return data;
 }

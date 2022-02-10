@@ -1,6 +1,3 @@
-const config = require('../../config.json');
-
-
 describe('GET /api/ping/', () => {
     test('200', async () => {
         const data = {}

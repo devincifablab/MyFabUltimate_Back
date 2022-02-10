@@ -1,4 +1,3 @@
-const config = require('../../config.json');
 const executeQuery = require("../../functions/dataBase/executeQuery").run;
 let db;
 
