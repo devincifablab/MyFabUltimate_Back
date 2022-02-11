@@ -479,62 +479,56 @@ async function setLinkDiscordAccount(data) {
         }
     }
 
-    const oauth = new DiscordOauth2();
     return await new Promise((resolve) => {
-        oauth.tokenRequest({
+        data.getDiscordUser({
             clientId: config.bot.clientId,
             clientSecret: config.bot.clientSecret,
             code: access_token,
             scope: "identify",
             grantType: "authorization_code",
             redirectUri: (config.url.split(":")[0] + ":" + config.url.split(":")[1]) + "/" + "discordConnection",
-        }).then((result) => {
-            oauth.getUser(result.access_token).then(async (userDiscordData) => {
-                const querySelect = `SELECT 1 FROM users
-                         WHERE v_discordid = ?
-                         OR (i_id = ?
-                             AND v_discordid IS NOT NULL)`;
+        }, async (userDiscordData) => {
+            const querySelect = `SELECT 1 FROM users
+                                WHERE v_discordid = ?
+                                OR (i_id = ?
+                                AND v_discordid IS NOT NULL)`;
 
-                const dbResSelect = await app.executeQuery(app.db, querySelect, [userDiscordData.id, userId]);
-                if (dbResSelect[0]) {
-                    console.log(dbResSelect[0]);
-                    resolve({
-                        type: "code",
-                        code: 500
-                    })
-                }
-                if (dbResSelect[1].length != 0) {
-                    resolve({
-                        type: "code",
-                        code: 403
-                    })
-                }
-
-                const queryUpdate = `UPDATE users SET v_discordid = ? WHERE i_id = ?;`;
-
-                const dbResUpdate = await app.executeQuery(app.db, queryUpdate, [userDiscordData.id, userId]);
-                if (dbResUpdate[0]) {
-                    console.log(dbResUpdate[0]);
-                    resolve({
-                        type: "code",
-                        code: 500
-                    })
-                }
-                resolve({
-                    type: "json",
-                    code: 200,
-                    json: {
-                        tag: userDiscordData.username + "#" + userDiscordData.discriminator,
-                        avatar: userDiscordData.avatar ? "https://cdn.discordapp.com/avatars/" + userDiscordData.id + "/" + userDiscordData.avatar + ".webp?size=128" : "https://external-preview.redd.it/4PE-nlL_PdMD5PrFNLnjurHQ1QKPnCvg368LTDnfM-M.png?auto=webp&s=ff4c3fbc1cce1a1856cff36b5d2a40a6d02cc1c3"
-                    }
-                })
-            }).catch(() => {
+            const dbResSelect = await data.app.executeQuery(data.app.db, querySelect, [userDiscordData.id, userId]);
+            if (dbResSelect[0]) {
+                console.log(dbResSelect[0]);
                 resolve({
                     type: "code",
                     code: 500
                 })
+            }
+            if (dbResSelect[1].length != 0) {
+                resolve({
+                    type: "code",
+                    code: 403
+                })
+            }
+
+            const queryUpdate = `UPDATE users SET
+                   v_discordid = ? WHERE
+                   i_id = ?;`;
+
+            const dbResUpdate = await data.app.executeQuery(data.app.db, queryUpdate, [userDiscordData.id, userId]);
+            if (dbResUpdate[0]) {
+                console.log(dbResUpdate[0]);
+                resolve({
+                    type: "code",
+                    code: 500
+                })
+            }
+            resolve({
+                type: "json",
+                code: 200,
+                json: {
+                    tag: userDiscordData.username + "#" + userDiscordData.discriminator,
+                    avatar: userDiscordData.avatar ? "https://cdn.discordapp.com/avatars/" + userDiscordData.id + "/" + userDiscordData.avatar + ".webp?size=128" : "https://external-preview.redd.it/4PE-nlL_PdMD5PrFNLnjurHQ1QKPnCvg368LTDnfM-M.png?auto=webp&s=ff4c3fbc1cce1a1856cff36b5d2a40a6d02cc1c3"
+                }
             })
-        }).catch(() => {
+        }, async () => {
             resolve({
                 type: "code",
                 code: 403
@@ -606,10 +600,24 @@ async function startApi(app) {
             res.sendStatus(500);
         }
     })
-    
+
     app.post("/api/user/discord/:code", async function (req, res) {
         try {
             const data = await require("../functions/apiActions").prepareData(app, req, res);
+            data.getDiscordUser = async (data, callback, callbackError) => {
+                await new Promise((resolve) => {
+                    const oauth = new DiscordOauth2();
+                    oauth.tokenRequest(data).then((result) => {
+                        oauth.getUser(result.access_token).then(async (userDiscordData) => {
+                            resolve(await callback(userDiscordData));
+                        }).catch(async () => {
+                            resolve(await callbackError());
+                        })
+                    }).catch(async () => {
+                        resolve(await callbackError());
+                    })
+                })
+            }
             const result = await setLinkDiscordAccount(data)
             await require("../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
