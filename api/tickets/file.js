@@ -67,47 +67,62 @@ function makeid(length, filename) {
  *        description: "Internal error with the request"
  */
 
-module.exports.getListOfFile = async (app) => {
-    app.get('/api/ticket/:id/file', async (req, res) => {
-        try {
-            const dvflcookie = req.headers.dvflcookie;
-            const idTicket = req.params.id;
-            // unauthenticated user
-            if (!dvflcookie) {
-                res.sendStatus(401);
-                return;
-            }
-            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
-
-            const resGetUserTicket = await app.executeQuery(app.db, "SELECT `i_idUser` AS 'id' FROM `printstickets` WHERE i_id = ?", [idTicket]);
-            if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
-                console.log(resGetUserTicket[0]);
-                res.sendStatus(500);
-                return;
-            }
-
-            const idTicketUser = resGetUserTicket[1][0].id;
-            if (idTicketUser != userIdAgent) {
-                const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "myFabAgent");
-                if (!authViewResult) {
-                    res.sendStatus(403);
-                    return;
-                }
-            }
-
-            const dbRes = await app.executeQuery(app.db, "SELECT `i_id` AS 'id', `v_fileName` AS 'filename', `v_comment` AS 'comment', `b_valid` AS 'isValid', `dt_creationDate` AS 'creationDate', `dt_modificationDate` AS 'modificationDate' FROM `ticketfiles` WHERE `i_idTicket` = ?", [idTicket]);
-            if (dbRes[0]) {
-                console.log(dbRes[0]);
-                res.sendStatus(500);
-                return;
-            }
-            res.json(dbRes[1])
-        } catch (err) {
-            console.log("ERROR: GET /api/ticket/:id/file/");
-            console.log(err);
-            res.sendStatus(500);
+module.exports.ticketFileGetListOfFile = ticketFileGetListOfFile;
+async function ticketFileGetListOfFile(data) {
+    const userIdAgent = data.userId;
+    const idTicket = data.params.id;
+    // unauthenticated user
+    if (!userIdAgent) {
+        return {
+            type: "code",
+            code: 401
         }
-    });
+    }
+
+    const queryGetUserTicket = `SELECT i_idUser AS 'id'
+                            FROM printstickets 
+                            WHERE i_id = ?`;
+    const resGetUserTicket = await data.app.executeQuery(data.app.db, queryGetUserTicket, [idTicket]);
+    if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
+        console.log(resGetUserTicket[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+
+    const idTicketUser = resGetUserTicket[1][0].id;
+    if (idTicketUser != userIdAgent) {
+        const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
+        if (!authViewResult) {
+            return {
+                type: "code",
+                code: 403
+            }
+        }
+    }
+
+    const querySelectFiles = `SELECT i_id AS 'id', 
+                            v_fileName AS 'filename',
+                            v_comment AS 'comment',
+                            b_valid AS 'isValid',
+                            dt_creationDate AS 'creationDate',
+                            dt_modificationDate AS 'modificationDate'
+                            FROM ticketfiles
+                            WHERE i_idTicket = ?`;
+    const dbRes = await data.app.executeQuery(data.app.db, querySelectFiles, [idTicket]);
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+    return {
+        type: "json",
+        code: 200,
+        json: dbRes[1]
+    }
 }
 
 /**
@@ -141,23 +156,27 @@ module.exports.getListOfFile = async (app) => {
  *        description: "Internal error with the request"
  */
 
-module.exports.getOneFile = async (app) => {
-    app.get('/api/file/:id/', async (req, res) => {
-        try {
-            // The body does not have all the necessary field
-            if (!req.params.id || isNaN(req.params.id)) {
-                res.sendStatus(400);
-                return;
-            }
+module.exports.ticketFileGetOneFile = ticketFileGetOneFile;
+async function ticketFileGetOneFile(data) {
+    const idFile = data.params.id;
+    // The body does not have all the necessary field
+    if (!idFile || isNaN(idFile)) {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
 
-            // if the user is not allowed
-            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
-            if (!userIdAgent) {
-                res.sendStatus(401);
-                return;
-            }
+    // if the user is not allowed
+    const userIdAgent = data.userId;
+    if (!userIdAgent) {
+        return {
+            type: "code",
+            code: 401
+        }
+    }
 
-            const query = `SELECT pt.i_idUser AS 'id',
+    const query = `SELECT pt.i_idUser AS 'id',
                 tf.v_fileServerName AS 'fileServerName',
                 tf.v_fileName AS 'fileName',
                 gdpt.v_name AS 'projectTypeName'
@@ -165,32 +184,41 @@ module.exports.getOneFile = async (app) => {
                 INNER JOIN printstickets AS pt ON tf.i_idTicket = pt.i_id
                 INNER JOIN gd_ticketprojecttype AS gdpt ON pt.i_projecttype = gdpt.i_id
                 WHERE tf.i_id = ?`;
-            const resGetUserTicket = await app.executeQuery(app.db, query, [req.params.id]);
-            if (resGetUserTicket[0] || resGetUserTicket[1].length > 1) {
-                console.log(resGetUserTicket[0]);
-                res.sendStatus(500);
-                return;
-            }
-            if (resGetUserTicket[1].length < 1) {
-                res.sendStatus(400);
-                return;
-            }
-            const idTicketUser = resGetUserTicket[1][0].id;
-            if (idTicketUser != userIdAgent) {
-                const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "myFabAgent");
-                if (!authViewResult) {
-                    res.sendStatus(403);
-                    return;
-                }
-            }
-            if (fs.existsSync(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName)) res.download(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName, (idTicketUser == userIdAgent) ? resGetUserTicket[1][0].fileName : req.params.id + "-" + resGetUserTicket[1][0].projectTypeName + "_" + resGetUserTicket[1][0].fileName);
-            else res.sendStatus(204);
-        } catch (err) {
-            console.log("ERROR: GET /api/file/:id/");
-            console.log(err);
-            res.sendStatus(500);
+    const resGetUserTicket = await data.app.executeQuery(data.app.db, query, [idFile]);
+    if (resGetUserTicket[0] || resGetUserTicket[1].length > 1) {
+        console.log(resGetUserTicket[0]);
+        return {
+            type: "code",
+            code: 500
         }
-    });
+    }
+    if (resGetUserTicket[1].length < 1) {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
+    const idTicketUser = resGetUserTicket[1][0].id;
+    if (idTicketUser != userIdAgent) {
+        const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
+        if (!authViewResult) {
+            return {
+                type: "code",
+                code: 403
+            }
+        }
+    }
+    if (fs.existsSync(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName))
+        return {
+            type: "download",
+            code: 200,
+            path: __dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName,
+            fileName: (idTicketUser == userIdAgent) ? resGetUserTicket[1][0].fileName : resGetUserTicket[1][0].projectTypeName + "-" + idFile + "_" + resGetUserTicket[1][0].fileName
+        }
+    else return {
+        type: "code",
+        code: 204
+    }
 }
 
 /**
@@ -241,95 +269,111 @@ module.exports.getOneFile = async (app) => {
  *        description: "Internal error with the request"
  */
 
-module.exports.post = async (app) => {
-    app.post('/api/ticket/:id/file/', async (req, res) => {
-        try {
-            // The body does not have all the necessary field
-            if (!req.files) {
-                res.sendStatus(400);
-                return;
-            }
+module.exports.ticketFilePost = ticketFilePost;
+async function ticketFilePost(data) {
+    const idTicket = data.params.id;
+    // The body does not have all the necessary field
+    if (!data.files) {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
 
-            //Detects if there are one or more files
-            let files;
-            if (req.files.filename.length == null) files = [req.files.filename];
-            else files = req.files.filename;
+    //Detects if there are one or more files
+    let files;
+    if (data.files.filename.length == null) files = [data.files.filename];
+    else files = data.files.filename;
 
-            // The body does not have all the necessary field
-            if (!req.params.id || isNaN(req.params.id)) {
-                res.sendStatus(400);
-                for (const file of files) {
-                    fs.unlinkSync(file.tempFilePath);
-                }
-                return;
-            }
+    // The body does not have all the necessary field
+    if (!data.params.id || isNaN(data.params.id)) {
+        for (const file of files) {
+            fs.unlinkSync(file.tempFilePath);
+        }
+        return {
+            type: "code",
+            code: 400
+        }
+    }
 
-            // if the user is not allowed
-            const userIdAgent = app.cookiesList[req.headers.dvflcookie];
-            if (!userIdAgent) {
-                res.sendStatus(401);
-                for (const file of files) {
-                    fs.unlinkSync(file.tempFilePath);
-                }
-                return;
-            }
-            const resGetUserTicket = await app.executeQuery(app.db, "SELECT `i_idUser` AS 'id' FROM `printstickets` WHERE i_id = ?", [req.params.id]);
-            if (resGetUserTicket[0] || resGetUserTicket[1].length > 1) {
-                console.log(resGetUserTicket[0]);
-                res.sendStatus(500);
-                for (const file of files) {
-                    fs.unlinkSync(file.tempFilePath);
-                }
-                return;
-            }
-            if (resGetUserTicket[1].length < 1) {
-                res.sendStatus(400);
-                for (const file of files) {
-                    fs.unlinkSync(file.tempFilePath);
-                }
-                return;
-            }
-            const idTicketUser = resGetUserTicket[1][0].id;
-            if (idTicketUser != userIdAgent) {
-                const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "myFabAgent");
-                if (!authViewResult) {
-                    res.sendStatus(403);
-                    for (const file of files) {
-                        fs.unlinkSync(file.tempFilePath);
-                    }
-                    return;
-                }
-            }
-
-            //loop all files
+    // if the user is not allowed
+    const userIdAgent = data.userId;
+    if (!userIdAgent) {
+        for (const file of files) {
+            fs.unlinkSync(file.tempFilePath);
+        }
+        return {
+            type: "code",
+            code: 401
+        }
+    }
+    const querySelect = `SELECT i_idUser AS 'id'
+                        FROM printstickets 
+                        WHERE i_id = ?`;
+    const resGetUserTicket = await data.app.executeQuery(data.app.db, querySelect, [idTicket]);
+    if (resGetUserTicket[0] || resGetUserTicket[1].length > 1) {
+        console.log(resGetUserTicket[0]);
+        for (const file of files) {
+            fs.unlinkSync(file.tempFilePath);
+        }
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+    if (resGetUserTicket[1].length < 1) {
+        for (const file of files) {
+            fs.unlinkSync(file.tempFilePath);
+        }
+        return {
+            type: "code",
+            code: 400
+        }
+    }
+    const idTicketUser = resGetUserTicket[1][0].id;
+    if (idTicketUser != userIdAgent) {
+        const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
+        if (!authViewResult) {
             for (const file of files) {
-                const fileNameSplited = file.name.split(".");
-                if ((fileNameSplited[fileNameSplited.length - 1]).toLowerCase() === "stl") {
-                    await new Promise(async (resolve) => {
-                        const newFileName = makeid(10, file.name);
-                        fs.copyFile(file.tempFilePath, __dirname + '/../../data/files/stl/' + newFileName, async (err) => {
-                            if (err) throw err;
-                            const resInsertFile = await app.executeQuery(app.db, "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`) VALUES (?, ?, ?, ?);", [userIdAgent, req.params.id, file.name, newFileName]);
-                            if (resInsertFile[0]) {
-                                console.log(resInsertFile[0]);
-                                res.sendStatus(500);
-                                return;
-                            }
-                            resolve();
-                        });
-                    })
-                }
                 fs.unlinkSync(file.tempFilePath);
             }
-
-            //return response
-            res.sendStatus(200);
-        } catch (err) {
-            console.log("ERROR: POST /api/ticket/:id/file/");
-            console.log(err);
-            res.sendStatus(500);
+            return {
+                type: "code",
+                code: 403
+            }
         }
-    });
+    }
+
+    //loop all files
+    for (const file of files) {
+        const fileNameSplited = file.name.split(".");
+        if ((fileNameSplited[fileNameSplited.length - 1]).toLowerCase() === "stl") {
+            await new Promise(async (resolve) => {
+                const newFileName = makeid(10, file.name);
+                fs.copyFile(file.tempFilePath, __dirname + '/../../data/files/stl/' + newFileName, async (err) => {
+                    if (err) throw err;
+                    const queryInsert = `INSERT INTO ticketfiles (i_idUser, i_idTicket, v_fileName, v_fileServerName)
+                                        VALUES (?, ?, ?, ?);`;
+                    const resInsertFile = await data.app.executeQuery(data.app.db, queryInsert, [userIdAgent, idTicket, file.name, newFileName]);
+                    if (resInsertFile[0]) {
+                        console.log(resInsertFile[0]);
+                        return {
+                            type: "code",
+                            code: 500
+                        }
+                    }
+                    resolve();
+                });
+            })
+        }
+        fs.unlinkSync(file.tempFilePath);
+    }
+
+    //return response
+    return {
+        type: "code",
+        code: 200
+    }
 }
 
 /**
@@ -373,40 +417,103 @@ module.exports.post = async (app) => {
  *        description: "Internal error with the request"
  */
 
-module.exports.put = async (app) => {
+
+module.exports.ticketFilePut = ticketFilePut;
+async function ticketFilePut(data) {
+    const userIdAgent = data.userId;
+    // unauthenticated user
+    if (!userIdAgent) {
+        return {
+            type: "code",
+            code: 401
+        }
+    }
+    const idTicket = data.params.id;
+    if (!idTicket, !data.body.comment, typeof data.body.isValid != "boolean") {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
+
+    const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
+    if (!authViewResult) {
+        return {
+            type: "code",
+            code: 403
+        }
+    }
+
+    const queryUpdate = `UPDATE ticketfiles
+                        SET v_comment = ?,
+                        b_valid = ?
+                        WHERE i_id = ?`;
+    const resUpdateFile = await data.app.executeQuery(data.app.db, queryUpdate, [data.body.comment, data.body.isValid, idTicket]);
+    if (resUpdateFile[0]) {
+        console.log(resUpdateFile[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    } else if (resUpdateFile[0] || resUpdateFile[1].affectedRows !== 1) {
+        return {
+            type: "code",
+            code: 204
+        }
+    }
+
+    //return response
+    return {
+        type: "code",
+        code: 200
+    }
+}
+
+
+module.exports.startApi = startApi;
+async function startApi(app) {
+    app.get('/api/ticket/:id/file', async (req, res) => {
+        try {
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            const result = await ticketFileGetListOfFile(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
+        } catch (err) {
+            console.log("ERROR: GET /api/ticket/:id/file/");
+            console.log(err);
+            res.sendStatus(500);
+        }
+    });
+
+    app.get('/api/file/:id/', async (req, res) => {
+        try {
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            const result = await ticketFileGetOneFile(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
+        } catch (err) {
+            console.log("ERROR: GET /api/file/:id/");
+            console.log(err);
+            res.sendStatus(500);
+        }
+    });
+
+
+    app.post('/api/ticket/:id/file/', async (req, res) => {
+        try {
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            const result = await ticketFilePost(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
+        } catch (err) {
+            console.log("ERROR: POST /api/ticket/:id/file/");
+            console.log(err);
+            res.sendStatus(500);
+        }
+    });
+
     app.put('/api/file/:id/', async (req, res) => {
         try {
-            const dvflcookie = req.headers.dvflcookie;
-            // unauthenticated user
-            if (!dvflcookie) {
-                res.sendStatus(401);
-                return;
-            }
-            if (!req.params.id, !req.body.comment, typeof req.body.isValid != "boolean") {
-                res.sendStatus(400);
-                return;
-            }
-            const idTicket = req.params.id;
-            const userIdAgent = app.cookiesList[dvflcookie];
-
-            const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "myFabAgent");
-            if (!authViewResult) {
-                res.sendStatus(403);
-                return;
-            }
-
-            const resUpdateFile = await app.executeQuery(app.db, "UPDATE `ticketfiles` SET `v_comment` = ?, `b_valid` = ? WHERE `i_id` = ?", [req.body.comment, req.body.isValid, idTicket]);
-            if (resUpdateFile[0]) {
-                console.log(resUpdateFile[0]);
-                res.sendStatus(500);
-                return;
-            } else if (resUpdateFile[0] || resUpdateFile[1].affectedRows !== 1) {
-                res.sendStatus(204);
-                return;
-            }
-
-            //return response
-            res.sendStatus(200);
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            const result = await ticketFilePut(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (err) {
             console.log("ERROR: PUT /api/file/:id/");
             console.log(err);

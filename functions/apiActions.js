@@ -52,7 +52,9 @@ module.exports.prepareData = async (app, req, res) => {
     const data = {
         app: app,
         params: req.params,
+        body: req.body,
         userId: req.headers.dvflcookie ? app.cookiesList[req.headers.dvflcookie] : null,
+        files: req.files,
         specialcode: req.headers.specialcode,
         userAuthorization: userAuthorization
     };
@@ -62,10 +64,13 @@ module.exports.prepareData = async (app, req, res) => {
 module.exports.sendResponse = async (req, res, data) => {
     switch (data.type) {
         case "json":
-            res.json(data.json)
+            res.json(data.json);
             break;
         case "code":
             res.sendStatus(data.code);
+            break;
+        case "download":
+            res.download(data.path, data.fileName);
             break;
 
         default:
