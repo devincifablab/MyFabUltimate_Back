@@ -41,47 +41,76 @@ const sha256 = require("sha256");
  *        description: "Internal error with the request"
  */
 
-module.exports.post = async (app) => {
+module.exports.postLogin = postLogin;
+async function postLogin(data) {
+    // The body does not have all the necessary field
+    if (!data.body.email || !data.body.password) {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
+
+    const querySelect = `SELECT i_id AS 'id',
+                        b_mailValidated AS 'mailValidated'
+                        FROM users
+                        WHERE v_email = ? AND
+                        v_password = ?;`;
+    const dbRes = await data.app.executeQuery(data.app.db, querySelect, [data.body.email, sha256(data.body.password)]);
+    // Error with the sql request
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+    // No match with tables => invalid email or password
+    if (dbRes[1].length < 1) {
+        return {
+            type: "code",
+            code: 401
+        }
+    }
+    // Too much match with tables
+    if (dbRes[1].length > 1) {
+        console.log("Login match with multiple users : " + data.body.email);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+
+    const mailValidated = dbRes[1][0].mailValidated;
+    if (mailValidated === 0) {
+        return {
+            type: "code",
+            code: 204
+        }
+    }
+    const id = dbRes[1][0].id;
+    const cookie = sha256((new Date().toISOString() + id + data.body.email).split('').sort(function () {
+        return 0.5 - Math.random()
+    }).join(''));
+    data.app.cookiesList[cookie] = id;
+
+    return {
+        type: "json",
+        code: 200,
+        json: {
+            dvflCookie: cookie
+        }
+    }
+}
+
+
+module.exports.startApi = startApi;
+async function startApi(app) {
     app.post("/api/user/login/", async function (req, res) {
         try {
-            // The body does not have all the necessary field
-            if (!req.body.email || !req.body.password) {
-                res.sendStatus(400);
-                return;
-            }
-            const dbRes = await app.executeQuery(app.db, "SELECT `i_id` AS 'id', `b_mailValidated` AS 'mailValidated' FROM `users` WHERE `v_email` = ? AND `v_password` = ?;", [req.body.email, sha256(req.body.password)]);
-            // Error with the sql request
-            if (dbRes[0]) {
-                console.log(dbRes[0]);
-                res.sendStatus(500);
-                return;
-            }
-            // No match with tables => invalid email or password
-            if (dbRes[1].length < 1) {
-                res.sendStatus(401);
-                return;
-            }
-            // Too much match with tables
-            if (dbRes[1].length > 1) {
-                console.log("Login match with multiple users : " + req.body.email);
-                res.sendStatus(500);
-                return;
-            }
-
-            const mailValidated = dbRes[1][0].mailValidated;
-            if (mailValidated === 0) {
-                res.sendStatus(204);
-                return;
-            }
-            const id = dbRes[1][0].id;
-            const cookie = sha256((new Date().toISOString() + id + req.body.email).split('').sort(function () {
-                return 0.5 - Math.random()
-            }).join(''));
-            app.cookiesList[cookie] = id;
-
-            res.json({
-                dvflCookie: cookie
-            })
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            const result = await postLogin(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
             console.log("ERROR: POST /api/user/login/");
             console.log(error);

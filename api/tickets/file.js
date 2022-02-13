@@ -496,7 +496,6 @@ async function startApi(app) {
         }
     });
 
-
     app.post('/api/ticket/:id/file/', async (req, res) => {
         try {
             const data = await require("../../functions/apiActions").prepareData(app, req, res);
