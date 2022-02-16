@@ -52,12 +52,15 @@ module.exports.prepareData = async (app, req, res) => {
     const data = {
         app: app,
         params: req.params,
+        query: req.query,
         body: req.body,
+        files: req.files,
         userId: req.headers.dvflcookie ? app.cookiesList[req.headers.dvflcookie] : null,
         files: req.files,
         specialcode: req.headers.specialcode,
         userAuthorization: userAuthorization
     };
+    //console.log(data);
     return data;
 }
 
