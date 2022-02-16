@@ -22,18 +22,31 @@ const sha256 = require("sha256");
  *        description: "Internal error with the request"
  */
 
-module.exports.post = async (app) => {
+module.exports.postLogout = postLogout;
+async function postLogout(data) {
+    const userIdAgent = data.userId;
+    if (!userIdAgent) {
+        return {
+            type: "code",
+            code: 401
+        }
+    }
+    delete data.app.cookiesList[data.dvflcookie];
+    return {
+        type: "code",
+        code: 200
+    }
+}
+
+
+module.exports.startApi = startApi;
+async function startApi(app) {
     app.delete("/api/user/logout/", async function (req, res) {
         try {
-            const dvflcookie = req.headers.dvflcookie;
-            // unauthenticated user
-            if (!dvflcookie) {
-                res.sendStatus(401);
-                return;
-            }
-            delete app.cookiesList[dvflcookie];
-
-            res.sendStatus(200);
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            data.dvflcookie = req.headers.dvflcookie;
+            const result = await postLogout(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
             console.log("ERROR: DELETE /api/user/logout/");
             console.log(error);
