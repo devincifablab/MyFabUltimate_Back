@@ -27,21 +27,39 @@
  *        description: "Internal error with the request"
  */
 
-module.exports.get = async (app) => {
+module.exports.getAuth = getAuth;
+async function getAuth(data) {
+    // The body does not have all the necessary field
+    if (!data.params.authName) {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
+    const userIdAgent = data.userId;
+    // unauthenticated user
+    if (!userIdAgent) {
+        return {
+            type: "code",
+            code: 401
+        }
+    }
+    const result = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, data.params.authName);
+    return {
+        type: "json",
+        code: 200,
+        json: result
+    }
+}
+
+
+module.exports.startApi = startApi;
+async function startApi(app) {
     app.get("/api/user/authorization/:authName", async function (req, res) {
         try {
-            // The body does not have all the necessary field
-            if (!req.params.authName || !req.headers.dvflcookie) {
-                res.sendStatus(400);
-                return;
-            }
-            const userId = app.cookiesList[req.headers.dvflcookie];
-            if (!userId) {
-                res.sendStatus(401);
-                return;
-            }
-            const result = await require("../../functions/userAuthorization").validateUserAuth(app, userId, req.params.authName);
-            res.json(result);
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            const result = await getAuth(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
             console.log("ERROR: POST /user/register/");
             console.log(error);
