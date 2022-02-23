@@ -37,16 +37,9 @@ function makeid(length) {
  *                type: string
  *     responses:
  *       200:
- *        description: "The user password is updated"
- *        content:
- *          application/json:
- *            schema:
- *              type: "object"
- *              properties:
- *                result:
- *                  type: string
- *              example:
- *                result: "password changed"
+ *        description: "Password updated successfully"
+ *       204:
+ *        description: "User not found"
  *       400:
  *        description: "The body does not have all the necessary field"
  *       401:
@@ -55,55 +48,59 @@ function makeid(length) {
  *        description: "Internal error with the request"
  */
 
-module.exports.putMe = async (app) => {
-    app.put("/api/user/password/", async function (req, res) {
-        try {
-            const dvflcookie = req.headers.dvflcookie;
-            // unauthenticated user
-            if (!dvflcookie) {
-                res.sendStatus(401);
-                return;
-            }
-            // The body does not have all the necessary field
-            if (!req.body.actualPassword || !req.body.newPassword) {
-                res.sendStatus(400);
-                return;
-            }
-            const userTarget = app.cookiesList[dvflcookie];
-            if (!userTarget) {
-                res.sendStatus(401);
-                return;
-            }
-            const dbRes = await app.executeQuery(app.db, "UPDATE `users` SET `v_password` = ? WHERE `i_id` = ? AND `v_password` = ?;", [sha256(req.body.newPassword), userTarget, sha256(req.body.actualPassword)]);
-            // Error with the sql request
-            if (dbRes[0]) {
-                console.log(dbRes[0]);
-                res.sendStatus(500);
-                return;
-            }
-            // No match with tables => invalid password
-            if (dbRes[1].affectedRows < 1) {
-                res.json({
-                    result: "password incorect"
-                })
-                return;
-            }
-            // Too much match with tables
-            if (dbRes[1].affectedRows > 1) {
-                console.log("update one user affect multiple users");
-                res.sendStatus(500);
-                return;
-            }
-            // Everything is fine
-            res.json({
-                result: "password changed"
-            })
-        } catch (error) {
-            console.log("ERROR: PUT /user/password/");
-            console.log(error);
-            res.sendStatus(500);
+
+module.exports.putPasswordMe = putPasswordMe;
+async function putPasswordMe(data) {
+    // The body does not have all the necessary field
+    if (!data.body.actualPassword || !data.body.newPassword) {
+        return {
+            type: "code",
+            code: 400
         }
-    })
+    }
+
+    // unauthenticated user
+    const userTarget = data.userId;
+    if (!userTarget) {
+        return {
+            type: "code",
+            code: 401
+        }
+    }
+
+    const queryUpdate = `UPDATE users
+                        SET v_password = ?
+                        WHERE i_id = ?
+                        AND v_password = ?;`;
+    const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [sha256(data.body.newPassword), userTarget, sha256(data.body.actualPassword)]);
+    // Error with the sql request
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+    // No match with tables => invalid password
+    if (dbRes[1].affectedRows < 1) {
+        return {
+            type: "code",
+            code: 204
+        }
+    }
+    // Too much match with tables
+    if (dbRes[1].affectedRows > 1) {
+        console.log("update one user affect multiple users");
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+    // Everything is fine
+    return {
+        type: "code",
+        code: 200
+    }
 }
 
 /**
@@ -136,84 +133,84 @@ module.exports.putMe = async (app) => {
  *                type: string
  *     responses:
  *       200:
- *         description: Test to detect if the server is responding correctly
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Ping'
+ *        description: "Password updated successfully"
+ *       204:
+ *        description: "User not found"
  *       400:
- *        description: "id is not valid"
+ *        description: "The body does not have all the necessary field"
  *       401:
  *        description: "The user is unauthenticated"
  *       403:
  *        description: "The user is not allowed"
+ *       500:
+ *        description: "Internal error with the request"
  */
 
-module.exports.put = async (app) => {
-    app.put("/api/user/password/:id", async function (req, res) {
-        try {
-            const dvflcookie = req.headers.dvflcookie;
-            const idUserTarget = 1; //req.params.id;
-            // unauthenticated user
-            if (!dvflcookie) {
-                res.sendStatus(401);
-                return;
-            }
-            const userIdAgent = app.cookiesList[dvflcookie];
-            if (!userIdAgent) {
-                console.log("a");
-                res.sendStatus(401);
-                return;
-            }
-            // if the user is not allowed
-            const authViewResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "viewUsers");
-            if (!authViewResult) {
-                console.log("b");
-                res.sendStatus(401);
-                return;
-            }
-            const authManageUsersResult = await require("../../functions/userAuthorization").validateUserAuth(app, userIdAgent, "manageUser");
-            if (!authManageUsersResult) {
-                console.log("c");
-                res.sendStatus(401);
-                return;
-            }
-            // The body does not have all the necessary field or id is not a number
-            if (isNaN(idUserTarget) || !req.body.actualPassword || !req.body.newPassword) {
-                console.log("d");
-                res.sendStatus(400);
-                return;
-            }
-            const dbRes = await app.executeQuery(app.db, "UPDATE `users` SET `v_password` = ? WHERE `i_id` = ?;", [sha256(req.body.newPassword), idUserTarget]);
-            // Error with the sql request
-            if (dbRes[0]) {
-                console.log(dbRes[0]);
-                res.sendStatus(500);
-                return;
-            }
-            // No match with tables => invalid password
-            if (dbRes[1].affectedRows < 1) {
-                res.json({
-                    result: "password incorect or user not found"
-                })
-                return;
-            }
-            // Too much match with tables
-            if (dbRes[1].affectedRows > 1) {
-                console.log("update one user affect multiple users");
-                res.sendStatus(500);
-                return;
-            }
-            // Everything is fine
-            res.json({
-                result: "password changed"
-            })
-        } catch (error) {
-            console.log("ERROR: PUT /user/password/:id");
-            console.log(error);
-            res.sendStatus(500);
+
+module.exports.putPasswordUser = putPasswordUser;
+async function putPasswordUser(data) {
+    const userIdAgent = data.userId;
+    if (!userIdAgent) {
+        return {
+            type: "code",
+            code: 401
         }
-    })
+    }
+    const idUserTarget = data.params.id;
+    // The body does not have all the necessary field or id is not a number
+    if (isNaN(idUserTarget) || !data.body.newPassword) {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
+    // if the user is not allowed
+    const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "viewUsers");
+    if (!authViewResult) {
+        return {
+            type: "code",
+            code: 401
+        }
+    }
+    const authManageUsersResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "manageUser");
+    if (!authManageUsersResult) {
+        return {
+            type: "code",
+            code: 401
+        }
+    }
+    const queryUpdate = `UPDATE users
+                    SET v_password = ?
+                    WHERE i_id = ?;`;
+    const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [sha256(data.body.newPassword), idUserTarget]);
+    // Error with the sql request
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+    // No match with tables => invalid password
+    if (dbRes[1].affectedRows < 1) {
+        return {
+            type: "code",
+            code: 204
+        }
+    }
+    // Too much match with tables
+    if (dbRes[1].affectedRows > 1) {
+        console.log("Update one user affect multiple users");
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+    // Everything is fine
+    return {
+        type: "code",
+        code: 200
+    }
 }
 
 /**
@@ -241,50 +238,61 @@ module.exports.put = async (app) => {
  *        description: "Internal error with the request"
  */
 
-module.exports.postForgottenPassword = async (app) => {
-    app.post("/api/user/forgottenPassword/", async function (req, res) {
-        try {
-            const email = req.body.email;
-            if (!email) {
-                res.sendStatus(400);
-                return;
-            }
-
-            const dbRes = await app.executeQuery(app.db, 'SELECT `i_id` AS `id` FROM `users` WHERE `v_email` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [email]);
-            // The sql request has an error
-            if (dbRes[0]) {
-                console.log(dbRes[0]);
-                res.sendStatus(500);
-                return;
-            }
-            // The response has no value
-            if (dbRes[1].length !== 1) {
-                res.sendStatus(200);
-                return;
-            }
-            const idNewUser = dbRes[1][0].id;
-            const tocken = makeid(10);
-
-            const sendMail = req.body.sendMail == null ? true : req.body.sendMail;
-            const resInsertTocken = await app.executeQuery(app.db, "INSERT INTO `mailtocken` (`i_idUser`, `v_value`, `b_mailSend`) VALUES (?, ?, ?);", [idNewUser, tocken, sendMail ? "1" : "0"]);
-            if (resInsertTocken[0]) {
-                console.log(resInsertTocken[0]);
-                res.sendStatus(500);
-                return;
-            }
-
-            //Send validation email to the user
-            if (sendMail) {
-                require('../../functions/sendMail').sendMail(email, "[MyFab] Réinitialisation du mot de passe", "Bonjour,\nPour valider votre mail merci de cliquer sur ce lien\n" + tocken);
-            }
-
-            res.sendStatus(200);
-        } catch (error) {
-            console.log("ERROR: POST /api/user/forgottenPassword/");
-            console.log(error);
-            res.sendStatus(500);
+module.exports.postForgottenPassword = postForgottenPassword;
+async function postForgottenPassword(data) {
+    const email = data.body.email;
+    if (!email) {
+        return {
+            type: "code",
+            code: 400
         }
-    })
+    }
+
+    const querySelect = `SELECT i_id AS id
+                        FROM users
+                        WHERE v_email = ?
+                        AND b_deleted = 0
+                        AND b_visible = 1`;
+    const dbRes = await data.app.executeQuery(data.app.db, querySelect, [email]);
+    // The sql request has an error
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+    // The response has no value
+    if (dbRes[1].length !== 1) {
+        return {
+            type: "code",
+            code: 200
+        }
+    }
+    const idNewUser = dbRes[1][0].id;
+    const tocken = makeid(10);
+
+    const sendMail = data.body.sendMail == null ? true : data.body.sendMail;
+    const queryInsert = `INSERT INTO mailtocken (i_idUser, v_value, b_mailSend)
+                        VALUES (?, ?, ?);`;
+    const resInsertTocken = await data.app.executeQuery(data.app.db, queryInsert, [idNewUser, tocken, sendMail ? "1" : "0"]);
+    if (resInsertTocken[0]) {
+        console.log(resInsertTocken[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+
+    //Send validation email to the user
+    if (sendMail) {
+        data.sendMailFunction.sendMail(email, "[MyFab] Réinitialisation du mot de passe", "Bonjour,\nPour valider votre mail merci de cliquer sur ce lien\n" + tocken);
+    }
+
+    return {
+        type: "code",
+        code: 200
+    }
 }
 
 /**
@@ -320,44 +328,112 @@ module.exports.postForgottenPassword = async (app) => {
  *        description: "Internal error with the request"
  */
 
-module.exports.putResetPassword = async (app) => {
+module.exports.putResetPassword = putResetPassword;
+async function putResetPassword(data) {
+    // The body does not have all the necessary field
+    if (!data.body.newPassword || !data.params.tocken) {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
+
+    const querySelect = `SELECT i_idUser AS 'id'
+                        FROM mailtocken
+                        WHERE v_value = ?`;
+    const dbSelectId = await data.app.executeQuery(data.app.db, querySelect, [data.params.tocken]);
+    if (dbSelectId[0]) {
+        console.log(dbSelectId[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+    if (dbSelectId[1].length != 1) {
+        return {
+            type: "code",
+            code: 401
+        }
+    }
+
+    const idUser = dbSelectId[1][0].id;
+    const queryUpdate = `UPDATE users
+                        SET v_password = ?
+                        WHERE i_id = ?;`;
+    const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [sha256(data.body.newPassword), idUser]);
+    // Error with the sql request
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+
+    const queryDelete = `DELETE FROM mailtocken
+                        WHERE v_value = ?`;
+    const dbDelete = await data.app.executeQuery(data.app.db, queryDelete, [data.params.tocken]);
+    if (dbDelete[0]) {
+        console.log(dbDelete[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+
+    // Everything is fine
+    return {
+        type: "code",
+        code: 200
+    }
+}
+
+
+
+module.exports.startApi = startApi;
+async function startApi(app) {
+    app.put("/api/user/password/", async function (req, res) {
+        try {
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            const result = await putPasswordMe(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
+        } catch (error) {
+            console.log("ERROR: PUT /user/password/");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+
+    app.put("/api/user/password/:id", async function (req, res) {
+        try {
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            const result = await putPasswordUser(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
+        } catch (error) {
+            console.log("ERROR: PUT /user/password/:id");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+
+    app.post("/api/user/forgottenPassword/", async function (req, res) {
+        try {
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            data.sendMailFunction = require('../../functions/sendMail');
+            const result = await postForgottenPassword(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
+        } catch (error) {
+            console.log("ERROR: POST /api/user/forgottenPassword/");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+
     app.put("/api/user/resetPassword/:tocken", async function (req, res) {
         try {
-            // The body does not have all the necessary field
-            if (!req.body.newPassword || !req.params.tocken) {
-                res.sendStatus(400);
-                return;
-            }
-
-            const dbSelectId = await app.executeQuery(app.db, "SELECT i_idUser AS 'id' FROM `mailtocken` WHERE v_value = ?", [req.params.tocken]);
-            if (dbSelectId[0]) {
-                console.log(dbSelectId[0]);
-                res.sendStatus(500);
-                return;
-            }
-            if (dbSelectId[1].length != 1) {
-                res.sendStatus(401);
-                return;
-            }
-
-            const idUser = dbSelectId[1][0].id;
-            const dbRes = await app.executeQuery(app.db, "UPDATE `users` SET `v_password` = ? WHERE `i_id` = ?;", [sha256(req.body.newPassword), idUser]);
-            // Error with the sql request
-            if (dbRes[0]) {
-                console.log(dbRes[0]);
-                res.sendStatus(500);
-                return;
-            }
-
-            const dbDelete = await app.executeQuery(app.db, "DELETE FROM `mailtocken` WHERE v_value = ?", [req.params.tocken]);
-            if (dbDelete[0]) {
-                console.log(dbDelete[0]);
-                res.sendStatus(500);
-                return;
-            }
-
-            // Everything is fine
-            res.sendStatus(200);
+            const data = await require("../../functions/apiActions").prepareData(app, req, res);
+            const result = await putResetPassword(data);
+            await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
             console.log("ERROR: PUT /api/user/password/");
             console.log(error);
