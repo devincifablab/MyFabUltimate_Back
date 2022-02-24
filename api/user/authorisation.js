@@ -48,7 +48,7 @@ async function startApi(app) {
             const result = await getAuth(data);
             await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
-            console.log("ERROR: POST /api/user/authorization/");
+            console.log("ERROR: GET /api/user/authorization/");
             console.log(error);
             res.sendStatus(500);
         }

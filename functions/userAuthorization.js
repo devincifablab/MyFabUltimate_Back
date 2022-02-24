@@ -20,7 +20,7 @@ async function getUserAuth(app, userId) {
     }
 
     let columnToSee = "";
-    const banColumn = ["i_id", "v_name", "v_description", "v_idDiscordRole", "v_color", "b_isProtected"];
+    const banColumn = ["i_id", "v_name", "v_description", "v_idDiscordRole", "v_color", "b_isProtected", "v_discordPrefix"];
     for (const column of resDescGdRole[1]) {
         if (!banColumn.includes(column.Field)) {
             if (columnToSee.length !== 0) columnToSee = columnToSee + ", gd_roles." + column.Field + " AS '" + column.Field.split("_")[1] + "'";
@@ -32,7 +32,6 @@ async function getUserAuth(app, userId) {
     // Error with the sql request
     if (resTestIfCorrelationExist[0]) {
         console.log(resTestIfCorrelationExist[0]);
-        res.sendStatus(500);
         return;
     }
     if (resTestIfCorrelationExist[1].length === 0) {
