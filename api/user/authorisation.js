@@ -1,8 +1,8 @@
 /**
  * @swagger
- * /user/authorization/{authName}:
+ * /user/authorization/:
  *   get:
- *     summary: Return true of false if the user is allowed to access to the ressource asked
+ *     summary: Return an object with the authorizations
  *     tags: [Role]
  *     parameters:
  *     - name: dvflCookie
@@ -10,12 +10,6 @@
  *       description: Cookie of the user making the request
  *       required: true
  *       type: string
- *     - name: "authName"
- *       in: "path"
- *       description: "Name of the autorization. The value accepted are 'viewUsers', 'manageUser', 'changeUserRole', 'changeUserProtectedRole', 'myFabAgent'"
- *       required: true
- *       type: "integer"
- *       format: "int64"
  *     responses:
  *       200:
  *         description: Account created successfully and an email was sent
