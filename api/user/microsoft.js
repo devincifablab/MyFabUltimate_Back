@@ -4,13 +4,13 @@ const axios = require("axios");
 
 /**
  * @swagger
- * /user/login/microsoft/{token}:
- *   post:
+ * /user/login/microsoft/:
+ *   get:
  *     summary: Connect a microsoft account and return a cookie
  *     tags: [User]
  *     parameters:
  *     - name: "token"
- *       in: "path"
+ *       in: "header"
  *       description: "Token to login/register"
  *       required: true
  *       type: "string"
