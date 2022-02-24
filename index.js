@@ -28,7 +28,7 @@ app.use(expressHeader([{
     },
     {
         key: 'Access-Control-Allow-Headers',
-        value: 'Origin, Content-Type, X-Auth-Token, dvflCookie, specialCode'
+        value: 'Origin, Content-Type, X-Auth-Token, dvflCookie, Authorization, specialCode'
     }
 ]))
 

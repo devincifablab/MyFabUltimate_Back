@@ -23,13 +23,6 @@
 
 module.exports.getAuth = getAuth;
 async function getAuth(data) {
-    // The body does not have all the necessary field
-    if (!data.params.authName) {
-        return {
-            type: "code",
-            code: 400
-        }
-    }
     const userIdAgent = data.userId;
     // unauthenticated user
     if (!userIdAgent) {
@@ -38,7 +31,7 @@ async function getAuth(data) {
             code: 401
         }
     }
-    const result = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, data.params.authName);
+    const result = await data.userAuthorization.getUserAuth(data.app, userIdAgent);
     return {
         type: "json",
         code: 200,
@@ -49,13 +42,13 @@ async function getAuth(data) {
 
 module.exports.startApi = startApi;
 async function startApi(app) {
-    app.get("/api/user/authorization/:authName", async function (req, res) {
+    app.get("/api/user/authorization/", async function (req, res) {
         try {
             const data = await require("../../functions/apiActions").prepareData(app, req, res);
             const result = await getAuth(data);
             await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
-            console.log("ERROR: POST /user/register/");
+            console.log("ERROR: POST /api/user/authorization/");
             console.log(error);
             res.sendStatus(500);
         }
