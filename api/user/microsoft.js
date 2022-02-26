@@ -59,7 +59,6 @@ async function postMicrosoftLogin(data) {
                     },
                     url: 'https://graph.microsoft.com/v1.0/me',
                 }).then(async (response) => {
-                    console.log("response");
                     const firstName = response.data.givenName;
                     const lastName = response.data.surname;
                     const email = response.data.mail;

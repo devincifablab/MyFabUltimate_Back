@@ -44,7 +44,7 @@ const sha256 = require("sha256");
 module.exports.postLogin = postLogin;
 async function postLogin(data) {
     // The body does not have all the necessary field
-    if (!data.body.email || !data.body.password) {
+    if (!data.body || !data.body.email || !data.body.password) {
         return {
             type: "code",
             code: 400
@@ -54,8 +54,9 @@ async function postLogin(data) {
     const querySelect = `SELECT i_id AS 'id',
                         b_mailValidated AS 'mailValidated'
                         FROM users
-                        WHERE v_email = ? AND
-                        v_password = ?;`;
+                        WHERE v_email = ?
+                        AND v_password = ?
+                        AND b_deleted = 0;`;
     const dbRes = await data.app.executeQuery(data.app.db, querySelect, [data.body.email, sha256(data.body.password)]);
     // Error with the sql request
     if (dbRes[0]) {
