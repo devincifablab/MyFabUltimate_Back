@@ -9,6 +9,7 @@ module.exports = async () => {
     if (!fs.existsSync(__dirname + "/../config_copy.json")) fs.writeFileSync(__dirname + "/../config_copy.json", realConfig);
     const config = JSON.parse(realConfig);
     config.db.database = dbName;
+    config.activelogs = false;
     fs.writeFileSync(__dirname + "/../config.json", JSON.stringify(config));
 
     const connection = await require("../functions/dataBase/createConnection").getDb();

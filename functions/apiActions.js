@@ -1,5 +1,5 @@
 const fs = require("fs");
-
+const activeLogs = require("../config.json").activelogs;
 
 async function runFolder(path, app) {
     return await new Promise(async (resolve) => {
@@ -49,6 +49,7 @@ module.exports.startApi = async (app) => {
 
 const userAuthorization = require("../functions/userAuthorization");
 module.exports.prepareData = async (app, req, res) => {
+    if (activeLogs) addLogs(req);
     const data = {
         app: app,
         params: req.params,
@@ -81,4 +82,17 @@ module.exports.sendResponse = async (req, res, data) => {
             res.sendStatus(500);
             break;
     }
+}
+
+async function addLogs(req) {
+    const date = new Date();
+    const stringDate = "[" + ("0" + (date.getDate())).slice(-2) + "/" + ("0" + (date.getMonth() + 1)).slice(-2) + "/" + date.getFullYear() + " " + ("0" + (date.getHours())).slice(-2) + ":" + ("0" + (date.getMinutes())).slice(-2) + "]";
+    const apiUsed = (Object.keys(req.route.methods)[0].toUpperCase()) + " " + req.route.path;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const newLog = stringDate + " " + ip + " " + apiUsed + "\n";
+
+    const fileName = "logs_" + date.getFullYear() + "_" + ("0" + (date.getMonth() + 1)).slice(-2) + "_" + ("0" + (date.getDate())).slice(-2);
+    if (!fs.existsSync("./logs")) fs.mkdirSync("./logs");
+    if (!fs.existsSync("./logs/" + fileName)) fs.writeFileSync("./logs/" + fileName, "");
+    fs.appendFileSync("./logs/" + fileName, newLog);
 }
