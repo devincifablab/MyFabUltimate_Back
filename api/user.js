@@ -28,6 +28,9 @@
  *         language:
  *           type: "string"
  *           description: "The language selected by the user. By default the language is 'fr'"
+ *         title:
+ *           type: "string"
+ *           description: "The title of user. For example 'Etudiant A2'"
  *         acceptedRule:
  *           type: "boolean"
  *           description: "If the user has accepted the general conditions of use"
@@ -126,7 +129,15 @@ async function userGetAll(data) {
             code: 403
         }
     }
-    const dbRes = await data.app.executeQuery(data.app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS `firstName`, `v_lastName` AS `lastName`, `v_email` AS `email` FROM `users` WHERE `b_deleted` = 0 AND `b_visible` = 1', []);
+    const querySelect = `SELECT i_id AS id,
+                v_firstName AS firstName,
+                v_lastName AS lastName,
+                v_email AS email,
+                v_title AS "title"
+                FROM users
+                WHERE b_deleted = 0
+                AND b_visible = 1`;
+    const dbRes = await data.app.executeQuery(data.app.db, querySelect, []);
     if (dbRes[0]) {
         console.log(dbRes[0]);
         return {
@@ -179,7 +190,20 @@ async function userGetMe(data) {
             code: 401
         }
     }
-    const dbRes = await data.app.executeQuery(data.app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [userIdAgent, userIdAgent]);
+    const querySelect = `SELECT i_id AS id,
+                    v_firstName AS "firstName",
+                    v_lastName AS "lastName",
+                    v_email AS "email",
+                    dt_creationdate AS "creationDate",
+                    v_discordid AS "discordid",
+                    v_language AS "language",
+                    v_title AS "title",
+                    (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE i_id = ?) AS "acceptedRule",
+                    b_mailValidated AS "mailValidated"
+                    FROM users
+                    WHERE i_id = ?
+                    AND b_deleted = 0`;
+    const dbRes = await data.app.executeQuery(data.app.db, querySelect, [userIdAgent, userIdAgent]);
     // The sql request has an error
     if (dbRes[0]) {
         console.log(dbRes[0]);
@@ -268,7 +292,20 @@ async function userGetById(data) {
             code: 403
         }
     }
-    const dbRes = await data.app.executeQuery(data.app.db, 'SELECT `i_id` AS `id`, `v_firstName` AS "firstName", `v_lastName` AS "lastName", `v_email` AS "email", `dt_creationdate` AS "creationDate", `v_discordid` AS "discordid",`v_language` AS "language", (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE `i_id` = ?) AS "acceptedRule", `b_mailValidated` AS "mailValidated" FROM `users` WHERE `i_id` = ? AND `b_deleted` = 0 AND `b_visible` = 1', [idUserTarget, idUserTarget]);
+    const querySelect = `SELECT i_id AS "id",
+                    v_firstName AS "firstName",
+                    v_lastName AS "lastName",
+                    v_email AS "email",
+                    dt_creationdate AS "creationDate",
+                    v_discordid AS "discordid",
+                    v_language AS "language",
+                    v_title AS "title",
+                    (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE i_id = ?) AS "acceptedRule",
+                    b_mailValidated AS "mailValidated"
+                    FROM users
+                    WHERE i_id = ?
+                    AND b_deleted = 0`;
+    const dbRes = await data.app.executeQuery(data.app.db, querySelect, [idUserTarget, idUserTarget]);
     // The sql request has an error
     if (dbRes[0]) {
         console.log(dbRes[0]);
@@ -358,7 +395,11 @@ async function userDeleteById(data) {
             code: 400
         }
     }
-    const dbRes = await data.app.executeQuery(data.app.db, 'UPDATE `users` SET `b_deleted` = "1", `dt_creationdate` = CURRENT_TIMESTAMP WHERE `i_id` = ?;', [idUserTarget]);
+    const queryUpdate = `UPDATE users
+                        SET b_deleted = "1",
+                        dt_creationdate = CURRENT_TIMESTAMP
+                        WHERE i_id = ?;`;
+    const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [idUserTarget]);
     // The sql request has an error
     if (dbRes[0]) {
         console.log(dbRes[0]);
