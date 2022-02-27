@@ -24,7 +24,7 @@
 module.exports.putMailValidation = putMailValidation;
 async function putMailValidation(data) {
     // The body does not have all the necessary field
-    const token = data.params.tocken
+    const token = data.params ? data.params.tocken : null;
     if (!token) {
         return {
             type: "code",
