@@ -3,12 +3,14 @@ const config = require("../../config.json");
 
 
 function getDb() {
-    const db = mysql.createConnection({
+    const options = {
         host: config.db.host,
         user: config.db.user,
         password: config.db.password,
         connectTimeout: 10000
-    });
+    };
+    if (config.db.port) options.port = config.db.port;
+    const db = mysql.createConnection(options);
     return db;
 }
 
