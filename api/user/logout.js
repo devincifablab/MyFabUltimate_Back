@@ -22,8 +22,8 @@ const sha256 = require("sha256");
  *        description: "Internal error with the request"
  */
 
-module.exports.postLogout = postLogout;
-async function postLogout(data) {
+module.exports.deleteLogout = deleteLogout;
+async function deleteLogout(data) {
     const userIdAgent = data.userId;
     if (!userIdAgent) {
         return {
@@ -45,7 +45,7 @@ async function startApi(app) {
         try {
             const data = await require("../../functions/apiActions").prepareData(app, req, res);
             data.dvflcookie = req.headers.dvflcookie;
-            const result = await postLogout(data);
+            const result = await deleteLogout(data);
             await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
             console.log("ERROR: DELETE /api/user/logout/");
