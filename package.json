@@ -28,7 +28,7 @@
     "express-fileupload": "^1.2.1",
     "express-header": "^1.1.1",
     "fs": "^0.0.1-security",
-    "mysql": "^2.18.1",
+    "mysql2": "^2.3.3",
     "nodemailer": "^6.7.2",
     "sha256": "^0.2.0"
   },
