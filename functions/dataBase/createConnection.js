@@ -9,8 +9,6 @@ function getDb() {
         password: config.db.password,
         connectTimeout: 10000
     };
-    //if (config.db.port) options.port = config.db.port;
-    console.log(options);
     const db = mysql.createConnection(options);
     return db;
 }
