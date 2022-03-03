@@ -9,7 +9,8 @@ function getDb() {
         password: config.db.password,
         connectTimeout: 10000
     };
-    if (config.db.port) options.port = config.db.port;
+    //if (config.db.port) options.port = config.db.port;
+    console.log(options);
     const db = mysql.createConnection(options);
     return db;
 }
@@ -23,6 +24,7 @@ module.exports.open = async (callback) => {
     return await new Promise((resolve, reject) => {
         db.connect(function (err) {
             if (err) {
+                console.log(err);
                 console.log("Can not reach the database");
                 process.exit(1);
             }
