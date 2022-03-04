@@ -54,17 +54,7 @@ async function addRootUser() {
 
 async function start() {
     await importSqlTables('./myFabUltimateDb.sql');
-    await new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, 500);
-    })
     await importSqlTables('./globalData.sql');
-    await new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, 500);
-    })
     await addRootUser();
     console.log("The database is ready");
 }
