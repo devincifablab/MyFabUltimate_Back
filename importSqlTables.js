@@ -49,7 +49,7 @@ async function addRootUser() {
                                 VALUES ((SELECT i_id FROM users WHERE v_email = 'root@root.com'),
                                 (SELECT i_id FROM gd_roles WHERE v_name = 'Administrateur'))`;
     await executeQuery(db, queryInsertRoolRole, []);
-    await fs.writeFileSync("./data/defaultRootPassword", rootPassWord);
+    await fs.writeFileSync("./data/defaultRootPassword", rootPassWord + "\n");
     await require("./functions/dataBase/createConnection").close(db);
     return;
 }
