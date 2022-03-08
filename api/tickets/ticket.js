@@ -118,7 +118,7 @@ async function getTicketAllFromUser(data) {
              INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id 
              INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id
              LEFT OUTER JOIN gd_status AS stat ON pt.i_status = stat.i_id
-             WHERE pt.i_idUser = ? AND pt.b_isDeleted = 0 ORDER BY pt.dt_creationdate DESC`;
+             WHERE pt.i_idUser = ? AND pt.b_isDeleted = 0 ORDER BY pt.i_id ASC`;
 
     const dbRes = await data.app.executeQuery(data.app.db, query, [userIdAgent]);
     if (dbRes[0]) {
@@ -189,8 +189,8 @@ async function getTicketAll(data) {
              INNER JOIN users AS u ON pt.i_idUser = u.i_id 
              INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id 
              INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id
-             INNER JOIN gd_status AS stat ON pt.i_status = stat.i_id
-             WHERE pt.b_isDeleted = 0 ORDER BY pt.dt_creationdate DESC`
+             LEFT OUTER JOIN gd_status AS stat ON pt.i_status = stat.i_id
+             WHERE pt.b_isDeleted = 0 ORDER BY pt.i_id ASC`
 
     const dbRes = await data.app.executeQuery(data.app.db, query, []);
     if (dbRes[0]) {
@@ -296,7 +296,7 @@ async function getTicketById(data) {
              INNER JOIN users AS u ON pt.i_idUser = u.i_id 
              INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id 
              INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id
-             INNER JOIN gd_status AS stat ON pt.i_status = stat.i_id
+             LEFT OUTER JOIN gd_status AS stat ON pt.i_status = stat.i_id
              WHERE pt.i_id = ? AND pt.b_isDeleted = 0`;
     const dbRes = await data.app.executeQuery(data.app.db, querySelect, [data.params.id]);
     if (dbRes[0]) {
@@ -337,7 +337,7 @@ async function getTicketById(data) {
             ltc.dt_timeStamp AS timeStamp
             FROM log_ticketschange AS ltc
             INNER JOIN users AS u ON ltc.i_idUser = u.i_id
-            INNER JOIN gd_status AS gds ON ltc.v_newValue = gds.i_id
+            LEFT OUTER JOIN gd_status AS gds ON ltc.v_newValue = gds.i_id
             WHERE i_idTicket = ? AND v_action = 'upd_status'
             ORDER BY ltc.dt_timeStamp ASC`;
     const dbResSelectLogStatus = await data.app.executeQuery(data.app.db, querySelectLogUpdStatus, [data.params.id]);

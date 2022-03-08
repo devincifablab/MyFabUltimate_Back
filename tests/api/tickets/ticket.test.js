@@ -55,7 +55,7 @@ describe('GET /api/ticket/me/', () => {
         const user = "ticketGetAllMe401noUser";
         const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
         expect(userData, "User '" + user + "' already exist").not.toBe(0);
-        
+
         //Execute
         const data = {
             userAuthorization: {
@@ -72,6 +72,96 @@ describe('GET /api/ticket/me/', () => {
 
         //Tests
         expect(response.code).toBe(401);
+        expect(response.type).toBe("code");
+    })
+})
+
+describe('GET /api/ticket/', () => {
+    test('200', async () => {
+        //Prepare
+        const user = "ticketGetAll200";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const userTicket = "ticketGetAllTicket200";
+        const userDataTicket = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, userTicket);
+        expect(userDataTicket, "User '" + userTicket + "' already exist").not.toBe(0);
+        const res = await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userDataTicket, idProjectType, idPriority]);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").getTicketAll(data);
+
+        //Tests
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("json");
+        expect(response.json.length).not.toBe(0);
+        expect(typeof response.json[0].id).toBe("number");
+        expect(typeof response.json[0].userName).toBe("string");
+        expect(Object.prototype.toString.call(response.json[0].creationDate) === '[object Date]').toBe(true);
+        expect(Object.prototype.toString.call(response.json[0].modificationDate) === '[object Date]').toBe(true);
+        expect(typeof response.json[0].priorityName).toBe("string");
+        expect(typeof response.json[0].priorityColor).toBe("string");
+    })
+    
+    test('401noUser', async () => {
+        //Prepare
+        const user = "ticketGetAll401noUser";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").getTicketAll(data);
+
+        //Tests
+        expect(response.code).toBe(401);
+        expect(response.type).toBe("code");
+    })
+    
+    test('403noRoleMyFabAgent', async () => {
+        //Prepare
+        const user = "ticketGetAll401noRoleMyFabAgent";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return false
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").getTicketAll(data);
+
+        //Tests
+        expect(response.code).toBe(403);
         expect(response.type).toBe("code");
     })
 })
