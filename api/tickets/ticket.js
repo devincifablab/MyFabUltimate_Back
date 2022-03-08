@@ -117,7 +117,7 @@ async function getTicketAllFromUser(data) {
              INNER JOIN users AS u ON pt.i_idUser = u.i_id 
              INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id 
              INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id
-             INNER JOIN gd_status AS stat ON pt.i_status = stat.i_id
+             LEFT OUTER JOIN gd_status AS stat ON pt.i_status = stat.i_id
              WHERE pt.i_idUser = ? AND pt.b_isDeleted = 0 ORDER BY pt.dt_creationdate DESC`;
 
     const dbRes = await data.app.executeQuery(data.app.db, query, [userIdAgent]);
@@ -836,7 +836,7 @@ async function startApi(app) {
     app.get("/api/ticket/me/", async function (req, res) {
         try {
             const data = await require("../../functions/apiActions").prepareData(app, req, res);
-            const result = await getTicketAll(data);
+            const result = await getTicketAllFromUser(data);
             await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
             console.log("ERROR: GET /api/ticket/me/");
