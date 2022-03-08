@@ -7,7 +7,7 @@ beforeAll(async () => {
     db = await require("../../../functions/dataBase/createConnection").open();
     await executeQuery(db, "INSERT INTO gd_roles (v_name, v_description, v_discordPrefix, v_color) VALUES ('testRole', '', '', '')", []);
     idRoleTest = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
-    await executeQuery(db, "INSERT INTO gd_roles (v_name, v_description, v_discordPrefix, v_color, b_isProtected) VALUES ('testRole', '', '', '', '1')", []);
+    const res = await executeQuery(db, "INSERT INTO gd_roles (v_name, v_description, v_discordPrefix, v_color, b_isProtected) VALUES ('testRoleProtected', '', '', '', '1')", []);
     idRoleProtectedTest = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
 });
 
@@ -1216,7 +1216,7 @@ describe('DELETE /api/user/:idUser/role/:idRole/', () => {
         const resCount = await executeQuery(db, "SELECT COUNT(*) AS 'count' FROM `rolescorrelation` WHERE i_idUser = ?", [userDataTarget]);
         expect(resCount[1][0].count).toBe(0);
     })
-    
+
     test('200_protectedRole', async () => {
         //Prepare
         const user = "roleDeleteRemoveRole200protectedRole";
@@ -1255,7 +1255,7 @@ describe('DELETE /api/user/:idUser/role/:idRole/', () => {
         const resCount = await executeQuery(db, "SELECT COUNT(*) AS 'count' FROM `rolescorrelation` WHERE i_idUser = ?", [userDataTarget]);
         expect(resCount[1][0].count).toBe(0);
     })
-    
+
     test('401_cantRemoveprotectedRole', async () => {
         //Prepare
         const user = "roleDeleteRemoveRole401cantRemoveprotectedRole";
