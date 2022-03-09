@@ -247,7 +247,7 @@ async function getTicketAll(data) {
 module.exports.getTicketById = getTicketById;
 async function getTicketById(data) {
     // parameters or body not valid
-    if (!data.params.id || isNaN(data.params.id)) {
+    if (!data.params || !data.params.id || isNaN(data.params.id)) {
         return {
             type: "code",
             code: 400
@@ -263,7 +263,7 @@ async function getTicketById(data) {
     }
     const querySelectUser = `SELECT i_idUser AS 'id'
                         FROM printstickets
-                        WHERE i_id = ?`;
+                        WHERE i_id = ? AND b_isDeleted = 0`;
     const resGetUserTicket = await data.app.executeQuery(data.app.db, querySelectUser, [data.params.id]);
     if (resGetUserTicket[0]) {
         console.log(resGetUserTicket[0]);
