@@ -441,7 +441,7 @@ async function getTicketById(data) {
 module.exports.postTicket = postTicket;
 async function postTicket(data) {
     // The body does not have all the necessary field
-    if (!data.body.projectType || isNaN(data.body.projectType) || data.body.groupNumber ? isNaN(data.body.groupNumber) : false || !data.body.comment || !data.files) {
+    if (!data.body || !data.body.projectType || isNaN(data.body.projectType) || isNaN(data.body && data.body.groupNumber ? data.body.groupNumber : 1) || !data.body.comment) {
         return {
             type: "code",
             code: 400
@@ -454,7 +454,22 @@ async function postTicket(data) {
             code: 401
         }
     }
-    const queryCreateTicket = `INSERT INTO printstickets (i_idUser, i_projecttype, i_groupNumber,i_priority,i_status)
+    const querySelectProjectType = `SELECT 1 FROM gd_ticketprojecttype WHERE i_id = ?`;
+    const resSelectProjectType = await data.app.executeQuery(data.app.db, querySelectProjectType, [data.body.projectType]);
+    if (resSelectProjectType[0]) {
+        console.log(resSelectProjectType[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    } else if (resSelectProjectType[1].length == 0) {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
+
+    const queryCreateTicket = `INSERT INTO printstickets (i_idUser, i_projecttype, i_groupNumber, i_priority, i_status)
                             VALUES (?, ?, ?, (SELECT i_id FROM gd_ticketpriority WHERE v_name = 'Normal'), (SELECT i_id FROM gd_status WHERE v_name = 'Ouvert'));`;
     const dbRes = await data.app.executeQuery(data.app.db, queryCreateTicket, [userId, data.body.projectType, data.body.groupNumber]);
     if (dbRes[0]) {
@@ -476,7 +491,8 @@ async function postTicket(data) {
 
     //Detects if there are one or more files
     let files;
-    if (data.files.filedata.length == null) files = [data.files.filedata];
+    if (data.files == null) files = [];
+    else if (data.files.filedata.length == null) files = [data.files.filedata];
     else files = data.files.filedata;
 
     //loop all files

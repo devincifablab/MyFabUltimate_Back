@@ -1,3 +1,4 @@
+const fs = require('fs');
 const executeQuery = require("../../../functions/dataBase/executeQuery").run;
 let db;
 let idProjectType;
@@ -13,6 +14,11 @@ beforeAll(async () => {
 
 afterAll(() => {
     db.end();
+    fs.readdir(__dirname + "/../../../data/files/stl/", (err, files) => {
+        files.forEach(file => {
+            if (file.endsWith('-test.STL')) fs.unlinkSync(__dirname + "/../../../data/files/stl/" + file);
+        });
+    });
 })
 
 describe('GET /api/ticket/me/', () => {
@@ -418,6 +424,379 @@ describe('GET /api/ticket/:id/', () => {
 
         //Tests
         expect(response.code).toBe(403);
+        expect(response.type).toBe("code");
+    })
+})
+
+describe('POST /api/ticket/', () => {
+    test('200_noFile', async () => {
+        //Prepare
+        const user = "ticketPost200_noFile";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                projectType: 1,
+                comment: "test"
+            },
+            files: null
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("json");
+        expect((response.json.id) != null).toBe(true);
+    })
+
+    test('200_1file', async () => {
+        //Prepare
+        const user = "ticketPost200_1file";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await fs.createReadStream(__dirname + '../../../Forme-Boîte.stl').pipe(fs.createWriteStream(__dirname + "../../../../tmp/test-" + user));
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                projectType: 1,
+                comment: "test"
+            },
+            files: {
+                filedata: {
+                    name: "test-" + user + "-test.STL",
+                    tempFilePath: __dirname + "/../../../tmp/test-" + user
+                }
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("json");
+        expect((response.json.id) != null).toBe(true);
+    })
+
+    test('200_multiplesFiles', async () => {
+        //Prepare
+        const user = "ticketPost200_multiplesFiles";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await fs.createReadStream(__dirname + '../../../Forme-Boîte.stl').pipe(fs.createWriteStream(__dirname + "../../../../tmp/test1-" + user));
+        await fs.createReadStream(__dirname + '../../../Forme-Boîte.stl').pipe(fs.createWriteStream(__dirname + "../../../../tmp/test2-" + user));
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                projectType: 1,
+                comment: "test"
+            },
+            files: {
+                filedata: [{
+                    name: "test1-" + user + "-test.STL",
+                    tempFilePath: __dirname + "/../../../tmp/test1-" + user
+                }, {
+                    name: "test2-" + user + "-test.STL",
+                    tempFilePath: __dirname + "/../../../tmp/test2-" + user
+                }]
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("json");
+        expect((response.json.id) != null).toBe(true);
+    })
+
+    test('200_withGroupNumber', async () => {
+        //Prepare
+        const user = "ticketPost200_withGroupNumber";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                projectType: 1,
+                comment: "test",
+                groupNumber: 1
+            },
+            files: null
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("json");
+        expect((response.json.id) != null).toBe(true);
+    })
+
+    test('400_noBody', async () => {
+        //Prepare
+        const user = "ticketPost400_noBody";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            files: {
+                filedata: []
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400_noProjectType', async () => {
+        //Prepare
+        const user = "ticketPost400_noProjectType";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                comment: "test"
+            },
+            files: {
+                filedata: []
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400_projectTypeIsNan', async () => {
+        //Prepare
+        const user = "ticketPost400_projectTypeIsNan";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                projectType: "NaN",
+                comment: "test"
+            },
+            files: {
+                filedata: []
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400_noComment', async () => {
+        //Prepare
+        const user = "ticketPost400_noComment";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                projectType: 1
+            },
+            files: {
+                filedata: []
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400_groupNumberNan', async () => {
+        //Prepare
+        const user = "ticketPost400_groupNumberNan";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                projectType: 1,
+                comment: "test",
+                groupNumber: "NaN"
+            },
+            files: {
+                filedata: []
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+    })
+
+    test('400_projectTypeUnknown', async () => {
+        //Prepare
+        const user = "ticketPost400_projectTypeUnknown";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                projectType: 100,
+                comment: "test",
+                groupNumber: 1
+            },
+            files: {
+                filedata: []
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('401_noUser', async () => {
+        //Prepare
+        const user = "ticketPost401_noUser";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+
+        //Execute
+        const data = {
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                projectType: 1,
+                comment: "test",
+                groupNumber: 1
+            },
+            files: {
+                filedata: []
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").postTicket(data);
+
+        //Tests
+        expect(response.code).toBe(401);
         expect(response.type).toBe("code");
     })
 })
