@@ -679,7 +679,7 @@ async function deleteTicketWithId(data) {
 module.exports.putTicketNewProjectType = putTicketNewProjectType;
 async function putTicketNewProjectType(data) {
     // parameters or body not valid
-    if (!data.query.projecttype || isNaN(data.query.projecttype) || !data.params.id || isNaN(data.params.id)) {
+    if (!data.query || !data.query.projecttype || isNaN(data.query.projecttype) || !data.params || !data.params.id || isNaN(data.params.id)) {
         return {
             type: "code",
             code: 400
