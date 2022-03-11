@@ -800,3 +800,271 @@ describe('POST /api/ticket/', () => {
         expect(response.type).toBe("code");
     })
 })
+
+
+
+describe('DELETE /api/ticket/:id', () => {
+    test('200_ticketOwner', async () => {
+        //Prepare
+        const user = "ticketDelete200ticketOwner";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userData, idProjectType, idPriority]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return false
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").deleteTicketWithId(data);
+
+        //Tests
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("code");
+        const resTicketDeleted = (await executeQuery(db, "SELECT COUNT(*) AS 'count' FROM printstickets WHERE i_id = ? AND b_isDeleted = 0", [idTicket]))[1][0].count;
+        expect(resTicketDeleted).toBe(0);
+    })
+
+    test('200_myFabAgent', async () => {
+        //Prepare
+        const user = "ticketDelete200myFabAgent";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const userOwner = "ticketDelete200myFabAgentOwner";
+        const userOwnerData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, userOwner);
+        expect(userOwnerData, "User '" + userOwner + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userOwnerData, idProjectType, idPriority]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").deleteTicketWithId(data);
+
+        //Tests
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("code");
+        const resTicketDeleted = (await executeQuery(db, "SELECT COUNT(*) AS 'count' FROM printstickets WHERE i_id = ? AND b_isDeleted = 0", [idTicket]))[1][0].count;
+        expect(resTicketDeleted).toBe(0);
+    })
+
+    test('400_noParams', async () => {
+        //Prepare
+        const user = "ticketDelete400noParams";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userData, idProjectType, idPriority]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return false
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").deleteTicketWithId(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+        const resTicketDeleted = (await executeQuery(db, "SELECT COUNT(*) AS 'count' FROM printstickets WHERE i_id = ? AND b_isDeleted = 0", [idTicket]))[1][0].count;
+        expect(resTicketDeleted).toBe(1);
+    })
+
+    test('400_noParamsId', async () => {
+        //Prepare
+        const user = "ticketDelete400noParamsId";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userData, idProjectType, idPriority]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return false
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {}
+        }
+        const response = await require("../../../api/tickets/ticket").deleteTicketWithId(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+        const resTicketDeleted = (await executeQuery(db, "SELECT COUNT(*) AS 'count' FROM printstickets WHERE i_id = ? AND b_isDeleted = 0", [idTicket]))[1][0].count;
+        expect(resTicketDeleted).toBe(1);
+    })
+
+    test('401_noUser', async () => {
+        //Prepare
+        const user = "ticketDelete401noUser";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userData, idProjectType, idPriority]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+
+        //Execute
+        const data = {
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return false
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").deleteTicketWithId(data);
+
+        //Tests
+        expect(response.code).toBe(401);
+        expect(response.type).toBe("code");
+        const resTicketDeleted = (await executeQuery(db, "SELECT COUNT(*) AS 'count' FROM printstickets WHERE i_id = ? AND b_isDeleted = 0", [idTicket]))[1][0].count;
+        expect(resTicketDeleted).toBe(1);
+    })
+
+    test('400_noTicket', async () => {
+        //Prepare
+        const user = "ticketDelete400noTicket";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userData, idProjectType, idPriority]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return false
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: 1000000
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").deleteTicketWithId(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+        const resTicketDeleted = (await executeQuery(db, "SELECT COUNT(*) AS 'count' FROM printstickets WHERE i_id = ? AND b_isDeleted = 0", [idTicket]))[1][0].count;
+        expect(resTicketDeleted).toBe(1);
+    })
+
+    test('403_noMyFabAgent', async () => {
+        //Prepare
+        const user = "ticketDelete403noMyFabAgent";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const userOwner = "ticketDelete403noMyFabAgentOwner";
+        const userOwnerData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, userOwner);
+        expect(userOwnerData, "User '" + userOwner + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userOwnerData, idProjectType, idPriority]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return false
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").deleteTicketWithId(data);
+
+        //Tests
+        expect(response.code).toBe(403);
+        expect(response.type).toBe("code");
+        const resTicketDeleted = (await executeQuery(db, "SELECT COUNT(*) AS 'count' FROM printstickets WHERE i_id = ? AND b_isDeleted = 0", [idTicket]))[1][0].count;
+        expect(resTicketDeleted).toBe(1);
+    })
+
+    test('204', async () => {
+        //Prepare
+        const user = "ticketDelete204";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`, `b_isDeleted`) VALUES (?, ?, ?, 1)", [userData, idProjectType, idPriority]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return false
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            }
+        }
+        const response = await require("../../../api/tickets/ticket").deleteTicketWithId(data);
+
+        //Tests
+        expect(response.code).toBe(204);
+        expect(response.type).toBe("code");
+        const resTicketDeleted = (await executeQuery(db, "SELECT COUNT(*) AS 'count' FROM printstickets WHERE i_id = ? AND b_isDeleted = 0", [idTicket]))[1][0].count;
+        expect(resTicketDeleted).toBe(0);
+    })
+})

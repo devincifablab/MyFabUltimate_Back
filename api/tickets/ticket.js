@@ -570,6 +570,13 @@ async function postTicket(data) {
 
 module.exports.deleteTicketWithId = deleteTicketWithId;
 async function deleteTicketWithId(data) {
+    // parameters or body not valid
+    if (!data.params || !data.params.id) {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
     // if the user is not allowed
     const userIdAgent = data.userId;
     if (!userIdAgent) {
