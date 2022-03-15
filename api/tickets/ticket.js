@@ -791,15 +791,15 @@ async function putTicketNewProjectType(data) {
 
 module.exports.putTicketNewStatus = putTicketNewStatus;
 async function putTicketNewStatus(data) {
-    const idStatus = data.query.idStatus;
-    const idTicket = data.params.id;
     // parameters or body not valid
-    if (!idStatus || isNaN(idStatus) || !idTicket || isNaN(idTicket)) {
+    if (!data.params || !data.params.id || isNaN(data.params.id) || !data.query || !data.query.idStatus || isNaN(data.query.idStatus)) {
         return {
             type: "code",
             code: 400
         }
     }
+    const idStatus = data.query.idStatus;
+    const idTicket = data.params.id;
     // if the user is not allowed
     const userIdAgent = data.userId;
     if (!userIdAgent) {

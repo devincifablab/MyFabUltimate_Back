@@ -13,6 +13,8 @@ beforeAll(async () => {
     idNewProjectType = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
     await executeQuery(db, "INSERT INTO `gd_ticketpriority` (`v_name`, `v_color`) VALUES ('testTicket', '000000')", []);
     idPriority = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+    await executeQuery(db, "INSERT INTO `gd_ticketpriority` (`v_name`, `v_color`) VALUES ('newTestTicket', '000000')", []);
+    idNewPriority = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
 });
 
 afterAll(() => {
@@ -1424,10 +1426,10 @@ describe('PUT /api/ticket/:id/setStatus', () => {
                 id: idTicket
             },
             query: {
-                projecttype: idNewProjectType
+                idStatus: idNewPriority
             }
         }
-        const response = await require("../../../api/tickets/ticket").putTicketNewProjectType(data);
+        const response = await require("../../../api/tickets/ticket").putTicketNewStatus(data);
 
         //Tests
         expect(response.code).toBe(200);
@@ -1455,19 +1457,19 @@ describe('PUT /api/ticket/:id/setStatus', () => {
                 executeQuery: executeQuery
             },
             query: {
-                projecttype: idNewProjectType
+                idStatus: idNewPriority
             }
         }
-        const response = await require("../../../api/tickets/ticket").putTicketNewProjectType(data);
+        const response = await require("../../../api/tickets/ticket").putTicketNewStatus(data);
 
         //Tests
         expect(response.code).toBe(400);
         expect(response.type).toBe("code");
     })
 
-    test('400noTicketId', async () => {
+    test('400noId', async () => {
         //Prepare
-        const user = "ticketPutSetStatus400noTicketId";
+        const user = "ticketPutSetStatus400noId";
         const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
         expect(userData, "User '" + user + "' already exist").not.toBe(0);
         await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userData, idProjectType, idPriority]);
@@ -1487,19 +1489,19 @@ describe('PUT /api/ticket/:id/setStatus', () => {
             },
             params: {},
             query: {
-                projecttype: idNewProjectType
+                idStatus: idNewPriority
             }
         }
-        const response = await require("../../../api/tickets/ticket").putTicketNewProjectType(data);
+        const response = await require("../../../api/tickets/ticket").putTicketNewStatus(data);
 
         //Tests
         expect(response.code).toBe(400);
         expect(response.type).toBe("code");
     })
-    
-    test('400ticketIdIsNan', async () => {
+
+    test('400idIsNan', async () => {
         //Prepare
-        const user = "ticketPutSetStatus400ticketIdIsNan";
+        const user = "ticketPutSetStatus400idIsNan";
         const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
         expect(userData, "User '" + user + "' already exist").not.toBe(0);
         await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userData, idProjectType, idPriority]);
@@ -1521,16 +1523,16 @@ describe('PUT /api/ticket/:id/setStatus', () => {
                 id: "idTicket"
             },
             query: {
-                projecttype: idNewProjectType
+                idStatus: idNewPriority
             }
         }
-        const response = await require("../../../api/tickets/ticket").putTicketNewProjectType(data);
+        const response = await require("../../../api/tickets/ticket").putTicketNewStatus(data);
 
         //Tests
         expect(response.code).toBe(400);
         expect(response.type).toBe("code");
     })
-    
+
     test('400noQuery', async () => {
         //Prepare
         const user = "ticketPutSetStatus400noQuery";
@@ -1555,13 +1557,13 @@ describe('PUT /api/ticket/:id/setStatus', () => {
                 id: idTicket
             }
         }
-        const response = await require("../../../api/tickets/ticket").putTicketNewProjectType(data);
+        const response = await require("../../../api/tickets/ticket").putTicketNewStatus(data);
 
         //Tests
         expect(response.code).toBe(400);
         expect(response.type).toBe("code");
     })
-    
+
     test('400noIdStatus', async () => {
         //Prepare
         const user = "ticketPutSetStatus400noIdStatus";
@@ -1585,19 +1587,18 @@ describe('PUT /api/ticket/:id/setStatus', () => {
             params: {
                 id: idTicket
             },
-            query: {
-            }
+            query: {}
         }
-        const response = await require("../../../api/tickets/ticket").putTicketNewProjectType(data);
+        const response = await require("../../../api/tickets/ticket").putTicketNewStatus(data);
 
         //Tests
         expect(response.code).toBe(400);
         expect(response.type).toBe("code");
     })
-    
-    test('400idProjectTypeIsNan', async () => {
+
+    test('400idStatusIsNan', async () => {
         //Prepare
-        const user = "ticketPutSetStatus400idProjectTypeIsNan";
+        const user = "ticketPutSetStatus400idStatusIsNan";
         const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
         expect(userData, "User '" + user + "' already exist").not.toBe(0);
         await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userData, idProjectType, idPriority]);
@@ -1619,16 +1620,16 @@ describe('PUT /api/ticket/:id/setStatus', () => {
                 id: idTicket
             },
             query: {
-                projecttype: "idNewProjectType"
+                idStatus: "idNewPriority"
             }
         }
-        const response = await require("../../../api/tickets/ticket").putTicketNewProjectType(data);
+        const response = await require("../../../api/tickets/ticket").putTicketNewStatus(data);
 
         //Tests
         expect(response.code).toBe(400);
         expect(response.type).toBe("code");
     })
-    
+
     test('401noUser', async () => {
         //Prepare
         const user = "ticketPutSetStatus401noUser";
@@ -1652,19 +1653,19 @@ describe('PUT /api/ticket/:id/setStatus', () => {
                 id: idTicket
             },
             query: {
-                projecttype: idNewProjectType
+                idStatus: idNewPriority
             }
         }
-        const response = await require("../../../api/tickets/ticket").putTicketNewProjectType(data);
+        const response = await require("../../../api/tickets/ticket").putTicketNewStatus(data);
 
         //Tests
         expect(response.code).toBe(401);
         expect(response.type).toBe("code");
     })
-    
-    test('403userUnauthorized', async () => {
+
+    test('403unauthorizedUser', async () => {
         //Prepare
-        const user = "ticketPutSetStatus403userUnauthorized";
+        const user = "ticketPutSetStatus403unauthorizedUser";
         const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
         expect(userData, "User '" + user + "' already exist").not.toBe(0);
         await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userData, idProjectType, idPriority]);
@@ -1686,21 +1687,23 @@ describe('PUT /api/ticket/:id/setStatus', () => {
                 id: idTicket
             },
             query: {
-                projecttype: idNewProjectType
+                idStatus: idNewPriority
             }
         }
-        const response = await require("../../../api/tickets/ticket").putTicketNewProjectType(data);
+        const response = await require("../../../api/tickets/ticket").putTicketNewStatus(data);
 
         //Tests
         expect(response.code).toBe(403);
         expect(response.type).toBe("code");
     })
-    
-    test('204ticketNotExist', async () => {
+
+    test('204ticketUnknown', async () => {
         //Prepare
-        const user = "ticketPutSetStatus204ticketNotExist";
+        const user = "ticketPutSetStatus204ticketUnknown";
         const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
         expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, ?, ?)", [userData, idProjectType, idPriority]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
 
         //Execute
         const data = {
@@ -1718,10 +1721,10 @@ describe('PUT /api/ticket/:id/setStatus', () => {
                 id: 1000000
             },
             query: {
-                projecttype: idNewProjectType
+                idStatus: idNewPriority
             }
         }
-        const response = await require("../../../api/tickets/ticket").putTicketNewProjectType(data);
+        const response = await require("../../../api/tickets/ticket").putTicketNewStatus(data);
 
         //Tests
         expect(response.code).toBe(204);
