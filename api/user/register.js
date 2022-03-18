@@ -55,7 +55,7 @@ function makeid(length) {
 module.exports.postRegister = postRegister;
 async function postRegister(data) {
     // The body does not have all the necessary field
-    if (!data.body.firstName || !data.body.lastName || !data.body.email || !data.body.password || validateEmail(data.body.email) === null) {
+    if (!data.body || !data.body.firstName || !data.body.lastName || !data.body.email || !data.body.password || validateEmail(data.body.email) === null) {
         return {
             type: "code",
             code: 400
