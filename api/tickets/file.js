@@ -69,6 +69,13 @@ function makeid(length, filename) {
 
 module.exports.ticketFileGetListOfFile = ticketFileGetListOfFile;
 async function ticketFileGetListOfFile(data) {
+    // The body does not have all the necessary field
+    if (!data.params || !data.params.id || isNaN(data.params.id)) {
+        return {
+            type: "code",
+            code: 400
+        }
+    }
     const userIdAgent = data.userId;
     const idTicket = data.params.id;
     // unauthenticated user
