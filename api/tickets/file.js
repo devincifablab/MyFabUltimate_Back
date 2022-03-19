@@ -165,14 +165,14 @@ async function ticketFileGetListOfFile(data) {
 
 module.exports.ticketFileGetOneFile = ticketFileGetOneFile;
 async function ticketFileGetOneFile(data) {
-    const idFile = data.params.id;
     // The body does not have all the necessary field
-    if (!idFile || isNaN(idFile)) {
+    if (!data.params || !data.params.id || isNaN(data.params.id)) {
         return {
             type: "code",
             code: 400
         }
     }
+    const idFile = data.params.id;
 
     // if the user is not allowed
     const userIdAgent = data.userId;
