@@ -68,7 +68,7 @@ async function getTicketMessage(data) {
         }
     }
     // The body does not have all the necessary field
-    if (!data.params.id || isNaN(data.params.id)) {
+    if (!data.params || !data.params.id || isNaN(data.params.id)) {
         return {
             type: "code",
             code: 400
