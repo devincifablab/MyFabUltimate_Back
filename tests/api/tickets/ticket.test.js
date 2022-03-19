@@ -19,11 +19,6 @@ beforeAll(async () => {
 
 afterAll(() => {
     db.end();
-    fs.readdir(__dirname + "/../../../data/files/stl/", (err, files) => {
-        files.forEach(file => {
-            if (file.endsWith('-test.STL')) fs.unlinkSync(__dirname + "/../../../data/files/stl/" + file);
-        });
-    });
 })
 
 describe('GET /api/ticket/me/', () => {

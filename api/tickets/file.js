@@ -200,6 +200,7 @@ async function ticketFileGetOneFile(data) {
         }
     }
     if (resGetUserTicket[1].length < 1) {
+        console.log(idFile);
         return {
             type: "code",
             code: 400
@@ -278,22 +279,14 @@ async function ticketFileGetOneFile(data) {
 
 module.exports.ticketFilePost = ticketFilePost;
 async function ticketFilePost(data) {
-    const idTicket = data.params.id;
-    // The body does not have all the necessary field
-    if (!data.files) {
-        return {
-            type: "code",
-            code: 400
-        }
-    }
-
     //Detects if there are one or more files
     let files;
-    if (data.files.filename.length == null) files = [data.files.filename];
-    else files = data.files.filename;
+    if (data.files == null) files = [];
+    else if (data.files.filedata.length == null) files = [data.files.filedata];
+    else files = data.files.filedata;
 
     // The body does not have all the necessary field
-    if (!data.params.id || isNaN(data.params.id)) {
+    if (!data.params || !data.params.id || isNaN(data.params.id)) {
         for (const file of files) {
             fs.unlinkSync(file.tempFilePath);
         }
@@ -302,6 +295,7 @@ async function ticketFilePost(data) {
             code: 400
         }
     }
+    const idTicket = data.params.id;
 
     // if the user is not allowed
     const userIdAgent = data.userId;

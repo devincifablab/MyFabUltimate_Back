@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon",
-    "test": "jest --coverage",
+    "test": "jest --i",
     "prepareDb": "node importSqlTables.js",
     "prepareFolders": "node createIgnoredFolders.js"
   },
