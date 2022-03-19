@@ -152,8 +152,7 @@ describe('GET /api/ticket/:id/message/', () => {
                 db: db,
                 executeQuery: executeQuery
             },
-            params: {
-            }
+            params: {}
         }
         const response = await require("../../../api/tickets/message").getTicketMessage(data);
 
@@ -254,6 +253,318 @@ describe('GET /api/ticket/:id/message/', () => {
             }
         }
         const response = await require("../../../api/tickets/message").getTicketMessage(data);
+
+        //Tests
+        expect(response.code).toBe(403);
+        expect(response.type).toBe("code");
+    })
+})
+
+describe('POST /api/ticket/:id/message/', () => {
+    test('200myFabAgent', async () => {
+        //Prepare
+        const user = "ticketPostTicketMessages200user";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const userAgent = "ticketPostTicketMessages200myFabAgent";
+        const userDataAgent = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, userAgent);
+        expect(userDataAgent, "User '" + userAgent + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+        await executeQuery(db, "INSERT INTO `ticketmessages` (`i_idUser`, `i_idTicket`, `v_content`) VALUES (?, ?, ?)", [userData, idTicket, user]);
+
+        //Execute
+        const data = {
+            userId: userDataAgent,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            },
+            body: {
+                content: "testContent"
+            }
+        }
+        const response = await require("../../../api/tickets/message").postTicketMessage(data);
+
+        //Tests
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("code");
+    })
+
+    test('200userOwner', async () => {
+        //Prepare
+        const user = "ticketPostTicketMessages200userOwner";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+        await executeQuery(db, "INSERT INTO `ticketmessages` (`i_idUser`, `i_idTicket`, `v_content`) VALUES (?, ?, ?)", [userData, idTicket, user]);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            },
+            body: {
+                content: "testContent"
+            }
+        }
+        const response = await require("../../../api/tickets/message").postTicketMessage(data);
+
+        //Tests
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("code");
+    })
+
+    test('400noParams', async () => {
+        //Prepare
+        const user = "ticketPostTicketMessages400noParams";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+        await executeQuery(db, "INSERT INTO `ticketmessages` (`i_idUser`, `i_idTicket`, `v_content`) VALUES (?, ?, ?)", [userData, idTicket, user]);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            body: {
+                content: "testContent"
+            }
+        }
+        const response = await require("../../../api/tickets/message").postTicketMessage(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400noId', async () => {
+        //Prepare
+        const user = "ticketPostTicketMessages400noId";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+        await executeQuery(db, "INSERT INTO `ticketmessages` (`i_idUser`, `i_idTicket`, `v_content`) VALUES (?, ?, ?)", [userData, idTicket, user]);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {},
+            body: {
+                content: "testContent"
+            }
+        }
+        const response = await require("../../../api/tickets/message").postTicketMessage(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400idIsNan', async () => {
+        //Prepare
+        const user = "ticketPostTicketMessages400idIsNan";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+        await executeQuery(db, "INSERT INTO `ticketmessages` (`i_idUser`, `i_idTicket`, `v_content`) VALUES (?, ?, ?)", [userData, idTicket, user]);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: "idTicket"
+            },
+            body: {
+                content: "testContent"
+            }
+        }
+        const response = await require("../../../api/tickets/message").postTicketMessage(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400noBody', async () => {
+        //Prepare
+        const user = "ticketPostTicketMessages400noBody";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+        await executeQuery(db, "INSERT INTO `ticketmessages` (`i_idUser`, `i_idTicket`, `v_content`) VALUES (?, ?, ?)", [userData, idTicket, user]);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            }
+        }
+        const response = await require("../../../api/tickets/message").postTicketMessage(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400noContent', async () => {
+        //Prepare
+        const user = "ticketPostTicketMessages400noContent";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+        await executeQuery(db, "INSERT INTO `ticketmessages` (`i_idUser`, `i_idTicket`, `v_content`) VALUES (?, ?, ?)", [userData, idTicket, user]);
+
+        //Execute
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            },
+            body: {}
+        }
+        const response = await require("../../../api/tickets/message").postTicketMessage(data);
+
+        //Tests
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('401noUser', async () => {
+        //Prepare
+        const user = "ticketPostTicketMessages401noUser";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+        await executeQuery(db, "INSERT INTO `ticketmessages` (`i_idUser`, `i_idTicket`, `v_content`) VALUES (?, ?, ?)", [userData, idTicket, user]);
+
+        //Execute
+        const data = {
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            },
+            body: {
+                content: "testContent"
+            }
+        }
+        const response = await require("../../../api/tickets/message").postTicketMessage(data);
+
+        //Tests
+        expect(response.code).toBe(401);
+        expect(response.type).toBe("code");
+    })
+
+    test('403unauthorized', async () => {
+        //Prepare
+        const user = "ticketPostTicketMessages403unauthorizedUser";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const userAgent = "ticketPostTicketMessages403unauthorizedAgent";
+        const userDataAgent = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, userAgent);
+        expect(userDataAgent, "User '" + userAgent + "' already exist").not.toBe(0);
+        await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+        const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+        await executeQuery(db, "INSERT INTO `ticketmessages` (`i_idUser`, `i_idTicket`, `v_content`) VALUES (?, ?, ?)", [userData, idTicket, user]);
+
+        //Execute
+        const data = {
+            userId: userDataAgent,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return false
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            },
+            params: {
+                id: idTicket
+            },
+            body: {
+                content: "testContent"
+            }
+        }
+        const response = await require("../../../api/tickets/message").postTicketMessage(data);
 
         //Tests
         expect(response.code).toBe(403);

@@ -165,10 +165,10 @@ async function getTicketMessage(data) {
 module.exports.postTicketMessage = postTicketMessage;
 async function postTicketMessage(data) {
     // The body does not have all the necessary field
-    if (!data.params.id || isNaN(data.params.id) || !data.body.content) {
+    if (!data.params || !data.params.id || isNaN(data.params.id) || !data.body || !data.body.content) {
         return {
             type: "code",
-            code: 401
+            code: 400
         }
     }
     // if the user is not allowed
@@ -238,7 +238,7 @@ async function startApi(app) {
             const result = await postTicketMessage(data);
             await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
-            console.log("ERROR: POST /api/ticket/");
+            console.log("ERROR: POST /api/ticket/:id/message/");
             console.log(error);
             res.sendStatus(500);
         }
