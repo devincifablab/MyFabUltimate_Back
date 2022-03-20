@@ -240,13 +240,13 @@ async function putPasswordUser(data) {
 
 module.exports.postForgottenPassword = postForgottenPassword;
 async function postForgottenPassword(data) {
-    const email = data.body.email;
-    if (!email) {
+    if (!data.body || !data.body.email) {
         return {
             type: "code",
             code: 400
         }
     }
+    const email = data.body.email;
 
     const querySelect = `SELECT i_id AS id
                         FROM users

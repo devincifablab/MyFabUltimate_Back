@@ -428,34 +428,163 @@ describe('PUT /user/password/:id', () => {
     })
 
     test('204unknownUser', async () => {
-            const user = "passwordPutId204unknownUser";
-            const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
-            expect(userData, "User '" + user + "' already exist").not.toBe(0);
-            const userTarget = "passwordPutId204unknownUserTarget";
-            const userDataTarget = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, userTarget);
-            expect(userDataTarget, "User '" + userTarget + "' already exist").not.toBe(0);
-            const data = {
-                userId: userData,
-                userAuthorization: {
-                    validateUserAuth: async (app, userIdAgent, authName) => {
-                        return true
-                    }
-                },
-                app: {
-                    db: db,
-                    executeQuery: executeQuery,
-                    cookiesList: {}
-                },
-                body: {
-                    newPassword: "newPassword"
-                },
-                params: {
-                    id: 1000000
+        const user = "passwordPutId204unknownUser";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const userTarget = "passwordPutId204unknownUserTarget";
+        const userDataTarget = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, userTarget);
+        expect(userDataTarget, "User '" + userTarget + "' already exist").not.toBe(0);
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
                 }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            body: {
+                newPassword: "newPassword"
+            },
+            params: {
+                id: 1000000
             }
-            const response = await require("../../../api/user/password").putPasswordUser(data);
-    
-            expect(response.code).toBe(204);
-            expect(response.type).toBe("code");
-        })
+        }
+        const response = await require("../../../api/user/password").putPasswordUser(data);
+
+        expect(response.code).toBe(204);
+        expect(response.type).toBe("code");
+    })
+})
+
+describe('POST /api/user/forgottenPassword/', () => {
+    test('200', async () => {
+        const user = "forgottenPasswordPost200";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        let mailSend = false;
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            sendMailFunction: {
+                sendMail: ((email, title, body) => {
+                    mailSend = true;
+                })
+            },
+            body: {
+                email: user + "@test.com"
+            }
+        }
+        const response = await require("../../../api/user/password").postForgottenPassword(data);
+
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("code");
+        expect(mailSend).toBe(true);
+    })
+
+    test('200butUnknownMail', async () => {
+        const user = "forgottenPasswordPost200butUnknownMail";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        let mailSend = false;
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            sendMailFunction: {
+                sendMail: ((email, title, body) => {
+                    mailSend = true;
+                })
+            },
+            body: {
+                email: user + "@wrongMail.com"
+            }
+        }
+        const response = await require("../../../api/user/password").postForgottenPassword(data);
+
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("code");
+        expect(mailSend).toBe(false);
+    })
+
+    test('400noBody', async () => {
+        const user = "forgottenPasswordPost400noBody";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        let mailSend = false;
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            sendMailFunction: {
+                sendMail: ((email, title, body) => {
+                    mailSend = true;
+                })
+            }
+        }
+        const response = await require("../../../api/user/password").postForgottenPassword(data);
+
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+        expect(mailSend).toBe(false);
+    })
+
+    test('400noEmail', async () => {
+        const user = "forgottenPasswordPost400noEmail";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        let mailSend = false;
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            sendMailFunction: {
+                sendMail: ((email, title, body) => {
+                    mailSend = true;
+                })
+            },
+            body: {}
+        }
+        const response = await require("../../../api/user/password").postForgottenPassword(data);
+
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+        expect(mailSend).toBe(false);
+    })
 })
