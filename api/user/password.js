@@ -156,27 +156,27 @@ async function putPasswordUser(data) {
             code: 401
         }
     }
-    const idUserTarget = data.params.id;
     // The body does not have all the necessary field or id is not a number
-    if (isNaN(idUserTarget) || !data.body.newPassword) {
+    if (!data.params || !data.params.id || isNaN(data.params.id) || !data.body || !data.body.newPassword) {
         return {
             type: "code",
             code: 400
         }
     }
+    const idUserTarget = data.params.id;
     // if the user is not allowed
     const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "viewUsers");
     if (!authViewResult) {
         return {
             type: "code",
-            code: 401
+            code: 403
         }
     }
     const authManageUsersResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "manageUser");
     if (!authManageUsersResult) {
         return {
             type: "code",
-            code: 401
+            code: 403
         }
     }
     const queryUpdate = `UPDATE users
