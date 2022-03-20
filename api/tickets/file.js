@@ -429,13 +429,13 @@ async function ticketFilePut(data) {
             code: 401
         }
     }
-    const idTicket = data.params.id;
-    if (!idTicket, !data.body.comment, typeof data.body.isValid != "boolean") {
+    if (!data.params || !data.params.id || isNaN(data.params.id) || !data.body || !((data.body.comment) || (data.body.isValid && typeof data.body.isValid == "boolean")) || (data.body.isValid && typeof data.body.isValid != "boolean")) {
         return {
             type: "code",
             code: 400
         }
     }
+    const idTicket = data.params.id;
 
     const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
     if (!authViewResult) {
