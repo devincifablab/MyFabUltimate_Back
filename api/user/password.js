@@ -52,7 +52,7 @@ function makeid(length) {
 module.exports.putPasswordMe = putPasswordMe;
 async function putPasswordMe(data) {
     // The body does not have all the necessary field
-    if (!data.body.actualPassword || !data.body.newPassword) {
+    if (!data.body || !data.body.actualPassword || !data.body.newPassword) {
         return {
             type: "code",
             code: 400
