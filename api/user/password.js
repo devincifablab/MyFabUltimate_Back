@@ -331,7 +331,7 @@ async function postForgottenPassword(data) {
 module.exports.putResetPassword = putResetPassword;
 async function putResetPassword(data) {
     // The body does not have all the necessary field
-    if (!data.body.newPassword || !data.params.tocken) {
+    if (!data.body || !data.body.newPassword || !data.params || !data.params.tocken) {
         return {
             type: "code",
             code: 400
@@ -435,7 +435,7 @@ async function startApi(app) {
             const result = await putResetPassword(data);
             await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
-            console.log("ERROR: PUT /api/user/password/");
+            console.log("ERROR: PUT /api/user/resetPassword/:tocken");
             console.log(error);
             res.sendStatus(500);
         }

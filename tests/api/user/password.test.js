@@ -588,3 +588,176 @@ describe('POST /api/user/forgottenPassword/', () => {
         expect(mailSend).toBe(false);
     })
 })
+
+describe('PUT /api/user/resetPassword/:tocken', () => {
+    test('200', async () => {
+        const user = "resetPassword200";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const token = "200";
+        await executeQuery(db, "INSERT INTO `mailtocken` (`i_idUser`, `v_value`, `b_mailSend`) VALUES (?, ?, '1')", [userData, token]);
+        const data = {
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            body: {
+                newPassword: "newPassword"
+            },
+            params: {
+                tocken: token
+            }
+        }
+        const response = await require("../../../api/user/password").putResetPassword(data);
+
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("code");
+    })
+
+    test('400noParams', async () => {
+        const user = "resetPassword400noParams";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const token = "400noParams";
+        await executeQuery(db, "INSERT INTO `mailtocken` (`i_idUser`, `v_value`, `b_mailSend`) VALUES (?, ?, '1')", [userData, token]);
+        const data = {
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            body: {
+                newPassword: "newPassword"
+            }
+        }
+        const response = await require("../../../api/user/password").putResetPassword(data);
+
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400noTocken', async () => {
+        const user = "resetPassword400noTocken";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const token = "400noTocken";
+        await executeQuery(db, "INSERT INTO `mailtocken` (`i_idUser`, `v_value`, `b_mailSend`) VALUES (?, ?, '1')", [userData, token]);
+        const data = {
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            body: {
+                newPassword: "newPassword"
+            },
+            params: {}
+        }
+        const response = await require("../../../api/user/password").putResetPassword(data);
+
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400noBody', async () => {
+        const user = "resetPassword400noBody";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const token = "400noBody";
+        await executeQuery(db, "INSERT INTO `mailtocken` (`i_idUser`, `v_value`, `b_mailSend`) VALUES (?, ?, '1')", [userData, token]);
+        const data = {
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            params: {
+                tocken: token
+            }
+        }
+        const response = await require("../../../api/user/password").putResetPassword(data);
+
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('400noNewPassword', async () => {
+        const user = "resetPassword400noNewPassword";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const token = "400noNewPassword";
+        await executeQuery(db, "INSERT INTO `mailtocken` (`i_idUser`, `v_value`, `b_mailSend`) VALUES (?, ?, '1')", [userData, token]);
+        const data = {
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            body: {},
+            params: {
+                tocken: token
+            }
+        }
+        const response = await require("../../../api/user/password").putResetPassword(data);
+
+        expect(response.code).toBe(400);
+        expect(response.type).toBe("code");
+    })
+
+    test('401unknownToken', async () => {
+        const user = "resetPassword401unknownToken";
+        const userData = await require('../../createNewUserAndLog').createNewUserAndLog(db, executeQuery, user);
+        expect(userData, "User '" + user + "' already exist").not.toBe(0);
+        const token = "401unknownToken";
+        await executeQuery(db, "INSERT INTO `mailtocken` (`i_idUser`, `v_value`, `b_mailSend`) VALUES (?, ?, '1')", [userData, token]);
+        const data = {
+            userId: userData,
+            userAuthorization: {
+                validateUserAuth: async (app, userIdAgent, authName) => {
+                    return true
+                }
+            },
+            app: {
+                db: db,
+                executeQuery: executeQuery,
+                cookiesList: {}
+            },
+            body: {
+                newPassword: "newPassword"
+            },
+            params: {
+                tocken: "token"
+            }
+        }
+        const response = await require("../../../api/user/password").putResetPassword(data);
+
+        expect(response.code).toBe(401);
+        expect(response.type).toBe("code");
+    })
+})
