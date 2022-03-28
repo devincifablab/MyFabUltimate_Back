@@ -592,7 +592,7 @@ async function startApi(app) {
     app.get("/api/user/:idUser/role/", async function (req, res) {
         try {
             const data = await require("../../functions/apiActions").prepareData(app, req, res);
-            const result = await getRoles(data);
+            const result = await getRolesForUserById(data);
             await require("../../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
             console.log("ERROR: GET /api/user/:idUser/role/");
