@@ -166,7 +166,8 @@ async function getRolesForUserById(data) {
                          gd_roles.i_id AS 'id',
                          gd_roles.v_name AS 'name',
                          gd_roles.v_description AS 'description',
-                         gd_roles.v_color AS 'color'
+                         gd_roles.v_color AS 'color',
+                         b_isProtected AS 'isProtected'
                          FROM rolescorrelation
                          INNER JOIN gd_roles
                          ON rolescorrelation.i_idRole = gd_roles.i_id
@@ -237,7 +238,8 @@ async function getRolesForActualUser(data) {
                          gd_roles.i_id AS 'id',
                          gd_roles.v_name AS 'name',
                          gd_roles.v_description AS 'description',
-                         gd_roles.v_color AS 'color'
+                         gd_roles.v_color AS 'color',
+                         b_isProtected AS 'isProtected'
                          FROM rolescorrelation
                          INNER JOIN gd_roles ON rolescorrelation.i_idRole = gd_roles.i_id
                          WHERE rolescorrelation.i_idUser = ?

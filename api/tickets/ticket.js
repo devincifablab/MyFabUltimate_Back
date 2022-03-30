@@ -183,7 +183,8 @@ async function getTicketAll(data) {
     const query = `SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
              tpt.v_name AS 'projectType', u.v_title AS 'title' , pt.i_groupNumber AS 'groupNumber' ,
              pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate',
-             stat.v_name AS 'statusName', stat.v_color AS 'statusColor', 
+             stat.v_name AS 'statusName', stat.v_color AS 'statusColor',
+             stat.b_isOpen AS 'isOpen',
              tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' 
              FROM printstickets AS pt 
              INNER JOIN users AS u ON pt.i_idUser = u.i_id 
