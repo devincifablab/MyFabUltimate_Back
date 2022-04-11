@@ -1,5 +1,5 @@
 const fs = require("fs");
-const activeLogs = require("../config.json").activelogs;
+const activeLogs = require("../config.json").activeLogs;
 
 async function runFolder(path, app) {
     return await new Promise(async (resolve) => {

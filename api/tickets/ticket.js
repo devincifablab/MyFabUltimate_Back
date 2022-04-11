@@ -531,6 +531,8 @@ async function postTicket(data) {
             code: 500
         }
     }
+    //Update bot channels
+    require("../..//functions/commandForBot").postTicket(lastIdentityRes[1][0].id);
     return {
         type: "json",
         code: 200,
@@ -631,6 +633,9 @@ async function deleteTicketWithId(data) {
             code: 204
         }
     }
+
+    //Update bot channels
+    require("../..//functions/commandForBot").postTicket(data.params.id);
 
     //return response
     return {
@@ -745,6 +750,9 @@ async function putTicketNewProjectType(data) {
         }
     }
 
+    //Update bot channels
+    require("../..//functions/commandForBot").postTicket(data.params.id);
+
     return {
         type: "code",
         code: 200
@@ -847,6 +855,9 @@ async function putTicketNewStatus(data) {
             code: 500
         }
     }
+
+    //Update bot channels
+    require("../..//functions/commandForBot").postTicket(data.params.id);
 
     return {
         type: "code",

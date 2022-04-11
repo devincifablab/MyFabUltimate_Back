@@ -367,8 +367,11 @@ async function ticketFilePost(data) {
                 });
             })
         }
-        fs.unlinkSync(file.tempFilePath);
+        fs.unlinkSync(idTicket);
     }
+    
+    //Update bot channels
+    require("../..//functions/commandForBot").postTicket(idTicket);
 
     //return response
     return {
@@ -462,6 +465,9 @@ async function ticketFilePut(data) {
             code: 204
         }
     }
+    
+    //Update bot channels
+    require("../..//functions/commandForBot").postTicket(idTicket);
 
     //return response
     return {

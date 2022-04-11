@@ -211,6 +211,10 @@ async function postTicketMessage(data) {
             code: 500
         }
     }
+    
+    //Update bot channels
+    require("../..//functions/commandForBot").postTicket(data.params.id);
+
     return {
         type: "code",
         code: 200
