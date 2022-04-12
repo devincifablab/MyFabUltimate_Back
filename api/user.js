@@ -464,6 +464,64 @@ async function getDicordLink(data) {
 
 /**
  * @swagger
+ * /user/discord/serverInvite/:
+ *   get:
+ *     summary: Get the invite to connect to the Discord server
+ *     tags: [User]
+ *     responses:
+ *       200:
+ *         description: Get the invite to connect to the Discord server
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *               example:
+ *                 result: https://discord.gg/example
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+const axios = require("axios");
+module.exports.getDicordInvite = getDicordInvite;
+async function getDicordInvite(data) {
+    if (!config.bot || !config.bot.clientId) {
+        console.log("Discord link with MyFab not configured");
+        return {
+            type: "code",
+            code: 204
+        }
+    }
+    const res = await new Promise(async (resolve, reject) => {
+        await axios({
+            method: 'GET',
+            url: config.url + config.portBot + "/api/invite/",
+        }).then(async (response) => {
+            resolve(response.data.result)
+        }).catch((err) => {
+            resolve(null);
+        })
+    })
+
+    if (res) {
+        return {
+            type: "json",
+            code: 200,
+            json: {
+                result: "https://discord.gg/" + res
+            }
+        }
+    }
+    return {
+        type: "code",
+        code: 204
+    }
+}
+
+/**
+ * @swagger
  * /user/discord/{code}:
  *   post:
  *     summary: Link discord account with MyFab
@@ -637,6 +695,18 @@ async function startApi(app) {
             await require("../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
             console.log("ERROR: GET /api/user/discord/link/");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+
+    app.get("/api/user/discord/serverInvite/", async function (req, res) {
+        try {
+            const data = {};
+            const result = await getDicordInvite(data)
+            await require("../functions/apiActions").sendResponse(req, res, result);
+        } catch (error) {
+            console.log("ERROR: GET /api/user/discord/serverInvite/");
             console.log(error);
             res.sendStatus(500);
         }
