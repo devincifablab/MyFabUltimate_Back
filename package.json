@@ -8,7 +8,8 @@
     "dev": "nodemon",
     "test": "jest -i",
     "prepareDb": "node importSqlTables.js",
-    "prepareFolders": "node createIgnoredFolders.js"
+    "prepareFolders": "node createIgnoredFolders.js",
+    "startOnServer": "node importSqlTables.js && node index.js"
   },
   "repository": {
     "type": "git",
