@@ -7,3 +7,4 @@ VOLUME ./data
 RUN npm install
 COPY . .
 RUN npm run prepareFolders
+CMD ["npm", "run", "startOnServer"]
