@@ -35,12 +35,12 @@ async function addRootUser() {
     await executeQuery(db, "CREATE DATABASE IF NOT EXISTS ??", [dbName]);
     await executeQuery(db, "USE ??", [dbName]);
 
-    const rootPassWord = require("./functions/makeid").makeid(30);
+    const rootPassword = require("./functions/makeid").makeid(30);
     const queryInsertRootUser = `INSERT INTO users
                             (v_firstName, v_lastName, v_email, v_password, dt_creationdate, v_language, dt_ruleSignature, b_deleted, b_visible, b_mailValidated, b_isMicrosoft, v_title)
                             VALUES
                             ('root', 'root', 'root@root.com', ?, current_timestamp(), 'fr', current_timestamp(), '0', '0', '1', '0', 'Root');`
-    const res = await executeQuery(db, queryInsertRootUser, [sha256(rootPassWord)]);
+    const res = await executeQuery(db, queryInsertRootUser, [sha256(rootPassword)]);
     if (res[0]) {
         await require("./functions/dataBase/createConnection").close(db);
         return;
@@ -48,8 +48,19 @@ async function addRootUser() {
     const queryInsertRoolRole = `INSERT INTO rolescorrelation (i_idUser, i_idRole)
                                 VALUES ((SELECT i_id FROM users WHERE v_email = 'root@root.com'),
                                 (SELECT i_id FROM gd_roles WHERE v_name = 'Administrateur'))`;
-    await executeQuery(db, queryInsertRoolRole, []);
-    await fs.writeFileSync("./data/defaultRootPassword", rootPassWord + "\n");
+    const resInserRoleRootUser = await executeQuery(db, queryInsertRoolRole, []);
+    if (resInserRoleRootUser[0]) {
+        await require("./functions/dataBase/createConnection").close(db);
+        return;
+    }
+    await fs.writeFileSync("./data/defaultRootPassword", rootPassword + "\n");
+
+    const systemPassword = require("./functions/makeid").makeid(64);
+    const queryInsertSystemUser = `INSERT INTO users
+                            (v_firstName, v_lastName, v_email, v_password, dt_creationdate, v_language, dt_ruleSignature, b_deleted, b_visible, b_mailValidated, b_isMicrosoft, v_title)
+                            VALUES
+                            ('Système', 'Myfab', 'system@system.com', ?, current_timestamp(), 'fr', current_timestamp(), '0', '0', '1', '0', 'Système');`
+    const resInsertSystemUser = await executeQuery(db, queryInsertSystemUser, [systemPassword]);
     await require("./functions/dataBase/createConnection").close(db);
     return;
 }

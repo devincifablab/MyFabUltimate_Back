@@ -1,7 +1,7 @@
 {
   "name": "myfabultimate_back",
   "description": "",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
