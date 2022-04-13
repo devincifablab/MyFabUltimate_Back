@@ -133,7 +133,8 @@ async function userGetAll(data) {
                 v_firstName AS firstName,
                 v_lastName AS lastName,
                 v_email AS email,
-                v_title AS "title"
+                v_title AS "title",
+                b_isMicrosoft AS "isMicrosoft"
                 FROM users
                 WHERE b_deleted = 0
                 AND b_visible = 1`;
@@ -198,6 +199,7 @@ async function userGetMe(data) {
                     v_discordid AS "discordid",
                     v_language AS "language",
                     v_title AS "title",
+                    b_isMicrosoft AS "isMicrosoft",
                     (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE i_id = ?) AS "acceptedRule",
                     b_mailValidated AS "mailValidated"
                     FROM users
@@ -300,6 +302,7 @@ async function userGetById(data) {
                     v_discordid AS "discordid",
                     v_language AS "language",
                     v_title AS "title",
+                    b_isMicrosoft AS "isMicrosoft",
                     (SELECT CASE WHEN dt_ruleSignature IS NULL THEN FALSE ELSE TRUE END FROM users WHERE i_id = ?) AS "acceptedRule",
                     b_mailValidated AS "mailValidated"
                     FROM users
