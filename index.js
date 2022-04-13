@@ -80,6 +80,11 @@ async function start() {
     console.log();
     console.log("Server is now listening port " + port);
     if (config.showSwagger) console.log("Swagger documentation available here : " + config.url + config.port + "/api-docs");
+
+    fs.readdirSync(__dirname + "/functions/cron/").forEach(async (file) => {
+        const cron = require(__dirname + "/functions/cron/" + file);
+        cron.run(app);
+    })
 }
 
 start();
