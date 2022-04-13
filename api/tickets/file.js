@@ -449,10 +449,9 @@ async function ticketFilePut(data) {
     }
 
     const queryUpdate = `UPDATE ticketfiles
-                        SET v_comment = ?,
-                        b_valid = ?
+                        SET v_comment = ?
                         WHERE i_id = ?`;
-    const resUpdateFile = await data.app.executeQuery(data.app.db, queryUpdate, [data.body.comment, data.body.isValid, idTicket]);
+    const resUpdateFile = await data.app.executeQuery(data.app.db, queryUpdate, [data.body.comment, idTicket]);
     if (resUpdateFile[0]) {
         console.log(resUpdateFile[0]);
         return {
