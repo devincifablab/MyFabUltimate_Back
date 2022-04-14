@@ -132,6 +132,41 @@ async function getStatus(data) {
 
  /**
   * @swagger
+  * /printer/:
+  *   get:
+  *     summary: Get list of printers.
+  *     tags: [GlobalData]
+  *     responses:
+  *       "200":
+  *         description: "Get list of printers."
+  *         content:
+  */
+ 
+ module.exports.getPrinter = getPrinter;
+ async function getPrinter(data) {
+    const query = `SELECT printer.i_id as id,
+            printer.v_name as name
+            FROM gd_printer AS printer
+            WHERE printer.b_isAvailable = 1;`;
+
+    const dbRes = await data.app.executeQuery(data.app.db, query, []);
+    if (dbRes[0]) {
+        console.log(dbRes[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+
+    return {
+        type: "json",
+        code: 200,
+        json: dbRes[1]
+    }
+ }
+
+ /**
+  * @swagger
   * /version/:
   *   get:
   *     summary: Get the version of the project.
@@ -174,6 +209,18 @@ async function startApi(app) {
             await require("../functions/apiActions").sendResponse(req, res, result);
         } catch (error) {
             console.log("ERROR: GET /api/projectType/");
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+
+    app.get("/api/printer/", async function (req, res) {
+        try {
+            const data = await require("../functions/apiActions").prepareData(app, req, res);
+            const result = await getPrinter(data)
+            await require("../functions/apiActions").sendResponse(req, res, result);
+        } catch (error) {
+            console.log("ERROR: GET /api/printer/");
             console.log(error);
             res.sendStatus(500);
         }

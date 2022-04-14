@@ -44,6 +44,24 @@ describe('GET /api/projectType/', () => {
     })
 })
 
+describe('GET /api/printer/', () => {
+    test('200', async () => {
+        const data = {
+            app: {
+                db: db,
+                executeQuery: executeQuery
+            }
+        }
+        const response = await require("../../api/getGlobaldata").getPrinter(data);
+
+        expect(response.code).toBe(200);
+        expect(response.type).toBe("json");
+        expect(response.json.length !== 0).toBe(true);
+        expect((response.json[0].id) != null).toBe(true);
+        expect((response.json[0].name) != null).toBe(true);
+    })
+})
+
 describe('GET /api/version/', () => {
     test('200', async () => {
         const data = {}

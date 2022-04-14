@@ -2,3 +2,4 @@ INSERT INTO `gd_roles` (`v_name`, `v_description`, `v_color`, `b_isProtected`, `
 INSERT INTO `gd_ticketpriority` (`v_name`, `v_color`) VALUES ('Normal', '2274e0'), ('A traiter', 'e9d41d'), ('Urgent', 'f30b0b')
 INSERT INTO `gd_ticketprojecttype` (`v_name`) VALUES ('PIX'), ('PIX2'), ('PING'), ('PI²'), ('Associatif'), ('Autre')
 INSERT INTO `gd_status` (`v_name`, `b_isOpen`, `v_color`) VALUES ('Ouvert', 1, '2ca1bb'), ('En attente de réponse', 1, 'f49a2c'), ('Fermé', 0, '18c100'), ('Refusé', 0, 'ff1e1e'), ('Impression commencée', 1, '1E90FF')
+INSERT INTO `gd_printer` (`v_name`, `b_isAvailable`) VALUES ('Grall', TRUE), ('Papi pierrot', TRUE), ('Gathô', TRUE), ('Cody', TRUE), ('Sisi', TRUE), ('Weix', TRUE), ('OnlyFab', TRUE), ('Bubulle', TRUE), ('Shefff', TRUE), ('Grosse Berta', TRUE)

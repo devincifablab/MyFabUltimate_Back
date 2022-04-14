@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS `gd_ticketpriority` ( `i_id` INT NOT NULL AUTO_INCREM
 
 CREATE TABLE IF NOT EXISTS `gd_ticketprojecttype` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_name` VARCHAR(50) NOT NULL , PRIMARY KEY (`i_id`), CONSTRAINT uk_v_name Unique (`v_name`)) ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS `gd_printer` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_name` VARCHAR(25) NOT NULL , `b_isAvailable` BOOLEAN NOT NULL , PRIMARY KEY (`i_id`), CONSTRAINT uk_v_name Unique (`v_name`)) ENGINE = InnoDB;
+
 CREATE TABLE IF NOT EXISTS `discordticket` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_idGuild` VARCHAR(18) NOT NULL , `v_idChannel` VARCHAR(18) NOT NULL , `v_idUser` VARCHAR(18) NOT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `rolescorrelation` ( `i_id` INT NOT NULL AUTO_INCREMENT , `i_idUser` INT NOT NULL , `i_idRole` INT NOT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
