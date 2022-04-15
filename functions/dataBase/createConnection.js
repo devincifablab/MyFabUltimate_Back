@@ -28,6 +28,10 @@ module.exports.open = async (callback) => {
                 process.exit(1);
             }
             db.query("USE ??", [config.db.database], function (error, results, fields) {
+                if (error) {
+                    console.log("Can not use database : '" + config.db.database + "'");
+                    process.exit(1);
+                }
                 if (callback) callback(db);
                 resolve(db);
             })
