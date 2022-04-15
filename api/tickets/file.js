@@ -109,14 +109,18 @@ async function ticketFileGetListOfFile(data) {
         }
     }
 
-    const querySelectFiles = `SELECT i_id AS 'id', 
-                            v_fileName AS 'filename',
-                            v_comment AS 'comment',
-                            b_valid AS 'isValid',
-                            dt_creationDate AS 'creationDate',
-                            dt_modificationDate AS 'modificationDate'
-                            FROM ticketfiles
-                            WHERE i_idTicket = ?`;
+    const querySelectFiles = `SELECT tf.i_id AS 'id', 
+                            tf.v_fileName AS 'filename',
+                            tf.v_comment AS 'comment',
+                            tf.b_valid AS 'isValid',
+                            tf.dt_creationDate AS 'creationDate',
+                            tf.dt_modificationDate AS 'modificationDate',
+                            gp.i_id AS 'idprinter',
+                            gp.v_name AS 'printerName'
+                            FROM ticketfiles AS tf
+                            LEFT JOIN gd_printer AS gp
+                            ON i_idprinter = gp.i_id
+                            WHERE tf.i_idTicket = ?`;
     const dbRes = await data.app.executeQuery(data.app.db, querySelectFiles, [idTicket]);
     if (dbRes[0]) {
         console.log(dbRes[0]);
@@ -369,7 +373,7 @@ async function ticketFilePost(data) {
         }
         fs.unlinkSync(idTicket);
     }
-    
+
     //Update bot channels
     require("../..//functions/commandForBot").postTicket(idTicket);
 
@@ -432,7 +436,7 @@ async function ticketFilePut(data) {
             code: 401
         }
     }
-    if (!data.params || !data.params.id || isNaN(data.params.id) || !data.body || !((data.body.comment) || (data.body.isValid && typeof data.body.isValid == "boolean")) || (data.body.isValid && typeof data.body.isValid != "boolean")) {
+    if (!data.params || !data.params.id || isNaN(data.params.id) || !data.body || !data.body.comment || (data.body.idprinter !== undefined ? isNaN(data.body.idprinter) : false)) {
         return {
             type: "code",
             code: 400
@@ -440,18 +444,35 @@ async function ticketFilePut(data) {
     }
     const idTicket = data.params.id;
 
-    const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
-    if (!authViewResult) {
+    const queryGetUserTicket = `SELECT i_idUser AS 'id'
+                            FROM printstickets 
+                            WHERE i_id = ?`;
+    const resGetUserTicket = await data.app.executeQuery(data.app.db, queryGetUserTicket, [idTicket]);
+    if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
+        console.log(resGetUserTicket[0]);
         return {
             type: "code",
-            code: 403
+            code: 500
+        }
+    }
+    
+    const idTicketUser = resGetUserTicket[1][0].id;
+    if (idTicketUser != userIdAgent) {
+        const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
+        if (!authViewResult) {
+            return {
+                type: "code",
+                code: 403
+            }
         }
     }
 
     const queryUpdate = `UPDATE ticketfiles
                         SET v_comment = ?
+                        ${data.body.idprinter !== undefined ? ", `i_idprinter` = ?" : ""}
                         WHERE i_id = ?`;
-    const resUpdateFile = await data.app.executeQuery(data.app.db, queryUpdate, [data.body.comment, idTicket]);
+    const options = data.body.idprinter !== undefined ? [data.body.comment, data.body.idprinter, idTicket] : [data.body.comment, idTicket];
+    const resUpdateFile = await data.app.executeQuery(data.app.db, queryUpdate, options);
     if (resUpdateFile[0]) {
         console.log(resUpdateFile[0]);
         return {
@@ -464,9 +485,9 @@ async function ticketFilePut(data) {
             code: 204
         }
     }
-    
+
     //Update bot channels
-    require("../..//functions/commandForBot").postTicket(idTicket);
+    require("../../functions/commandForBot").postTicket(idTicket);
 
     //return response
     return {
