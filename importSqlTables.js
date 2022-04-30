@@ -3,7 +3,7 @@ const sha256 = require("sha256");
 
 
 async function importSqlTables(file) {
-    const db = await require("./functions/dataBase/createConnection").open();
+    const db = await require("./functions/dataBase/createConnection").open(null, true);
     const executeQuery = require("./functions/dataBase/executeQuery").run;
     const dbName = require("./config.json").db.database;
     await executeQuery(db, "CREATE DATABASE IF NOT EXISTS ??", [dbName]);

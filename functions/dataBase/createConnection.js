@@ -17,7 +17,7 @@ function getDb() {
 
 module.exports.getDb = getDb;
 
-module.exports.open = async (callback) => {
+module.exports.open = async (callback, dontNeedToUse) => {
     const db = getDb();
 
     return await new Promise((resolve, reject) => {
@@ -29,8 +29,14 @@ module.exports.open = async (callback) => {
             }
             db.query("USE ??", [config.db.database], function (error, results, fields) {
                 if (error) {
-                    console.log("Can not use database : '" + config.db.database + "'");
-                    process.exit(1);
+                    if (dontNeedToUse) {
+                        if (callback) callback(db);
+                        resolve(db);
+                        return;
+                    }else {
+                        console.log("Can not use database : '" + config.db.database + "'");
+                        process.exit(1);
+                    }
                 }
                 if (callback) callback(db);
                 resolve(db);
