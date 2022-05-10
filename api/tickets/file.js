@@ -436,7 +436,7 @@ async function ticketFilePut(data) {
             code: 401
         }
     }
-    if (!data.params || !data.params.id || isNaN(data.params.id) || !data.body || !data.body.comment || (data.body.idprinter !== undefined ? isNaN(data.body.idprinter) : false)) {
+    if (!data.params || !data.params.id || isNaN(data.params.id) || !data.body || (!data.body.comment ? data.body.comment !== "" : false) || (data.body.idprinter !== undefined ? isNaN(data.body.idprinter) : false)) {
         return {
             type: "code",
             code: 400
@@ -455,7 +455,7 @@ async function ticketFilePut(data) {
             code: 500
         }
     }
-    
+
     const idTicketUser = resGetUserTicket[1][0].id;
     if (idTicketUser != userIdAgent) {
         const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
