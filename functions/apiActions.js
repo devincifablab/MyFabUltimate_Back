@@ -49,7 +49,7 @@ module.exports.startApi = async (app) => {
 
 const userAuthorization = require("../functions/userAuthorization");
 module.exports.prepareData = async (app, req, res) => {
-    if (activeLogs) addLogs(req);
+    if (activeLogs) addLogsApiRequest(req);
     const data = {
         app: app,
         params: req.params,
@@ -66,6 +66,7 @@ module.exports.prepareData = async (app, req, res) => {
 }
 
 module.exports.sendResponse = async (req, res, data) => {
+    if (activeLogs && data.code !== 200 && data.message) addLogsError(data.code + ": " + data.message);
     switch (data.type) {
         case "json":
             res.json(data.json);
@@ -84,7 +85,7 @@ module.exports.sendResponse = async (req, res, data) => {
     }
 }
 
-async function addLogs(req) {
+async function addLogsApiRequest(req) {
     const date = new Date();
     const stringDate = "[" + ("0" + (date.getDate())).slice(-2) + "/" + ("0" + (date.getMonth() + 1)).slice(-2) + "/" + date.getFullYear() + " " + ("0" + (date.getHours())).slice(-2) + ":" + ("0" + (date.getMinutes())).slice(-2) + "]";
     const apiUsed = (Object.keys(req.route.methods)[0].toUpperCase()) + " " + req.route.path;
@@ -92,7 +93,17 @@ async function addLogs(req) {
     const newLog = stringDate + " " + ip + " " + apiUsed + "\n";
 
     const fileName = "logs_" + date.getFullYear() + "_" + ("0" + (date.getMonth() + 1)).slice(-2) + "_" + ("0" + (date.getDate())).slice(-2);
-    if (!fs.existsSync("./logs")) fs.mkdirSync("./logs");
-    if (!fs.existsSync("./logs/" + fileName)) fs.writeFileSync("./logs/" + fileName, "");
-    fs.appendFileSync("./logs/" + fileName, newLog);
+    if (!fs.existsSync("./logs/")) fs.mkdirSync("./logs/");
+    if (!fs.existsSync("./logs/api/")) fs.mkdirSync("./logs/api/");
+    if (!fs.existsSync("./logs/api/" + fileName)) fs.writeFileSync("./logs/api/" + fileName, "");
+    fs.appendFileSync("./logs/api/" + fileName, newLog);
+}
+
+async function addLogsError(line) {
+    const date = new Date();
+    const fileName = "logs_" + date.getFullYear() + "_" + ("0" + (date.getMonth() + 1)).slice(-2) + "_" + ("0" + (date.getDate())).slice(-2);
+    if (!fs.existsSync("./logs/")) fs.mkdirSync("./logs/");
+    if (!fs.existsSync("./logs/apiError/")) fs.mkdirSync("./logs/apiError/");
+    if (!fs.existsSync("./logs/apiError/" + fileName)) fs.writeFileSync("./logs/apiError/" + fileName, "");
+    fs.appendFileSync("./logs/apiError/" + fileName, line + "\n");
 }
