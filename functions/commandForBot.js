@@ -3,6 +3,7 @@ const config = require('../config.json');
 
 
 module.exports.postTicket = async (id) => {
+    return
     await axios({
         method: 'POST',
         url: config.url + config.portBot + "/api/ticket/" + id,
