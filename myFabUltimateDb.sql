@@ -1,7 +1,7 @@
 
-CREATE TABLE IF NOT EXISTS `articles` (`id` int(11) NOT NULL, `article` varchar(255) DEFAULT NULL, `likes` int(11) NOT NULL DEFAULT 0) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+--CREATE TABLE IF NOT EXISTS `articles` (`id` int(11) NOT NULL, `article` varchar(255) DEFAULT NULL, `likes` int(11) NOT NULL DEFAULT 0) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `likes` (`id` int(11) NOT NULL, `ip` varchar(255) DEFAULT NULL, `article` varchar(255) DEFAULT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+--CREATE TABLE IF NOT EXISTS `likes` (`id` int(11) NOT NULL, `ip` varchar(255) DEFAULT NULL, `article` varchar(255) DEFAULT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `users` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_firstName` VARCHAR(75) NOT NULL , `v_lastName` VARCHAR(75) NOT NULL , `v_email` VARCHAR(75) NOT NULL , `v_password` VARCHAR(64) NOT NULL ,`dt_creationdate` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP , `v_discordid` VARCHAR(18) NULL DEFAULT NULL , `v_language` VARCHAR(2) NOT NULL DEFAULT 'fr' , `dt_ruleSignature` DATETIME NULL DEFAULT NULL , `b_deleted` BOOLEAN NOT NULL DEFAULT FALSE ,`b_visible` BOOLEAN NOT NULL DEFAULT TRUE , `b_mailValidated` BOOLEAN NOT NULL DEFAULT FALSE , `b_isMicrosoft` BOOLEAN NOT NULL DEFAULT FALSE , `v_title` VARCHAR(254) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL , `dt_rickrolled` DATETIME DEFAULT NULL , PRIMARY KEY (`i_id`), CONSTRAINT uk_v_email Unique (`v_email`)) ENGINE = InnoDB;
 
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `gd_ticketprojecttype` ( `i_id` INT NOT NULL AUTO_INC
 
 CREATE TABLE IF NOT EXISTS `gd_printer` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_name` VARCHAR(25) NOT NULL , `b_isAvailable` BOOLEAN NOT NULL , PRIMARY KEY (`i_id`), CONSTRAINT uk_v_name Unique (`v_name`)) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS `discordticket` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_idGuild` VARCHAR(18) NOT NULL , `v_idChannel` VARCHAR(18) NOT NULL , `v_idUser` VARCHAR(18) NOT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
+--CREATE TABLE IF NOT EXISTS `discordticket` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_idGuild` VARCHAR(18) NOT NULL , `v_idChannel` VARCHAR(18) NOT NULL , `v_idUser` VARCHAR(18) NOT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `rolescorrelation` ( `i_id` INT NOT NULL AUTO_INCREMENT , `i_idUser` INT NOT NULL , `i_idRole` INT NOT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
 ALTER TABLE `rolescorrelation` ADD CONSTRAINT `fk_rc_idUser` FOREIGN KEY IF NOT EXISTS (`i_idUser`) REFERENCES `users`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
@@ -55,8 +55,8 @@ ALTER TABLE `log_ticketsfileschange` ADD CONSTRAINT `fk_ltfc_idTickets` FOREIGN 
 CREATE TABLE IF NOT EXISTS `mailtocken` ( `i_id` INT NOT NULL AUTO_INCREMENT , `i_idUser` INT NOT NULL , `v_value` VARCHAR(15) NOT NULL , `b_mailSend` BOOLEAN NOT NULL , `dt_creationDate` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
 ALTER TABLE `mailtocken` ADD CONSTRAINT `fk_mt_idUser` FOREIGN KEY IF NOT EXISTS (`i_idUser`) REFERENCES `users`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
-CREATE TABLE IF NOT EXISTS `lockers` ( `i_id` INT NOT NULL , `i_idUser` INT , `i_idTickets` INT , `dt_usedSince` DATETIME DEFAULT NULL , `i_idLastUser` INT , `i_idLastTickets` INT , `dt_lastUsedSince` DATETIME DEFAULT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
-ALTER TABLE `lockers` ADD CONSTRAINT `fk_l_idUser` FOREIGN KEY IF NOT EXISTS (`i_idUser`) REFERENCES `users`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE `lockers` ADD CONSTRAINT `fk_l_idTicket` FOREIGN KEY IF NOT EXISTS (`i_idTickets`) REFERENCES `printstickets`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE `lockers` ADD CONSTRAINT `fk_l_idLastUser` FOREIGN KEY IF NOT EXISTS (`i_idLastUser`) REFERENCES `users`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE `lockers` ADD CONSTRAINT `fk_l_idLastTicket` FOREIGN KEY IF NOT EXISTS (`i_idLastTickets`) REFERENCES `printstickets`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+--CREATE TABLE IF NOT EXISTS `lockers` ( `i_id` INT NOT NULL , `i_idUser` INT , `i_idTickets` INT , `dt_usedSince` DATETIME DEFAULT NULL , `i_idLastUser` INT , `i_idLastTickets` INT , `dt_lastUsedSince` DATETIME DEFAULT NULL , PRIMARY KEY (`i_id`)) ENGINE = InnoDB;
+--ALTER TABLE `lockers` ADD CONSTRAINT `fk_l_idUser` FOREIGN KEY IF NOT EXISTS (`i_idUser`) REFERENCES `users`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+--ALTER TABLE `lockers` ADD CONSTRAINT `fk_l_idTicket` FOREIGN KEY IF NOT EXISTS (`i_idTickets`) REFERENCES `printstickets`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+--ALTER TABLE `lockers` ADD CONSTRAINT `fk_l_idLastUser` FOREIGN KEY IF NOT EXISTS (`i_idLastUser`) REFERENCES `users`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+--ALTER TABLE `lockers` ADD CONSTRAINT `fk_l_idLastTicket` FOREIGN KEY IF NOT EXISTS (`i_idLastTickets`) REFERENCES `printstickets`(`i_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
