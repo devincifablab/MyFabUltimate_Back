@@ -14,10 +14,18 @@ Bonjour ! Vous vous trouvez actuellement sur le respository de MyFab mais côté
         "password": "",
         "database": "myFabUltimate"
     },
+    "siteRoot": "http://localhost:3000/",
     "url": "http://localhost:",
     "port": 5000,
+    "portBot": 2224,
     "showSwagger": true,
-    "ghost_key": "test"
+    "activeLogs": true,
+    "specialTocken": "specialTocken",
+    "mail": {
+        "activateMail": false,
+        "user": "yourMail@gmail.com",
+        "pass": "yourPassword"
+    }
 }
 ```
  6. Créer la base de donnée `myFabUltimate`.
