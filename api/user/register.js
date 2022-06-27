@@ -1,4 +1,5 @@
 const sha256 = require("sha256");
+const config = require("../../config.json");
 const validateEmail = (email) => {
     return String(email)
         .toLowerCase()
@@ -134,7 +135,7 @@ async function postRegister(data) {
 
     //Send validation email to the user
     if (sendMail) {
-        data.sendMailFunction.sendMail(data.body.email, "[MyFab] Validation de mail", "Bonjour,\nPour valider votre mail merci de cliquer sur ce lien\n" + tocken);
+        data.sendMailFunction.sendMail(data.body.email, "[MyFab] Validation de mail", "Bonjour,\nPour valider votre mail merci de cliquer sur ce lien\n" + config.siteRoot + "auth/verify/" + tocken);
     }
 
     return {
