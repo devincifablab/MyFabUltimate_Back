@@ -288,8 +288,8 @@ async function getTicketById(data) {
             }
         }
     }
-    const querySelect = `SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
-             tpt.v_name AS 'projectType', u.v_title AS 'title' , u.v_email AS 'email' , pt.i_groupNumber AS 'groupNumber' ,
+    const querySelect = `SELECT pt.i_id AS 'id', pt.i_idUser AS 'idUser',CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
+             tpt.v_name AS 'projectType', pt.i_projecttype AS 'idProjectType', u.v_title AS 'title' , u.v_email AS 'email' , pt.i_groupNumber AS 'groupNumber' ,
              pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate',
              stat.v_name AS 'statusName', stat.v_color AS 'statusColor',
              tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' 
@@ -314,6 +314,41 @@ async function getTicketById(data) {
         }
     }
     const result = dbRes[1][0];
+    // SELECT COUNT(*) AS ticketCreated FROM `printstickets`;
+    // SELECT COUNT(*) FROM `printstickets` WHERE i_idUser = ? AND (dt_creationdate BETWEEN CONCAT((YEAR((SELECT dt_creationdate FROM `printstickets` WHERE i_id = ?)) - (MONTH((SELECT dt_creationdate FROM `printstickets` WHERE i_id = ?)) < 9)), "/09/01") and CONCAT((YEAR((SELECT dt_creationdate FROM `printstickets` WHERE i_id = ?)) - (MONTH((SELECT dt_creationdate FROM `printstickets` WHERE i_id = ?)) > 9)), "/08/31"));
+
+    const querySelectCountUser = `SELECT COUNT(*) AS 'countUser' FROM printstickets 
+            WHERE i_idUser = ?
+            AND (dt_creationdate BETWEEN CONCAT((YEAR((SELECT dt_creationdate FROM printstickets WHERE i_id = ?)) - (MONTH((SELECT dt_creationdate FROM printstickets WHERE i_id = ?)) < 9)), "/09/01")
+            AND CONCAT((YEAR((SELECT dt_creationdate FROM printstickets WHERE i_id = ?)) - (MONTH((SELECT dt_creationdate FROM printstickets WHERE i_id = ?)) > 9)), "/08/31"));`;
+    const dbResSelectCounterUser = await data.app.executeQuery(data.app.db, querySelectCountUser, [result.idUser, result.id, result.id, result.id, result.id]);
+    if (dbResSelectCounterUser[0]) {
+        console.log(dbResSelectCounterUser[0]);
+        return {
+            type: "code",
+            code: 500
+        }
+    }
+    result.ticketCountUser = dbResSelectCounterUser[1][0].countUser;
+
+    if (result.groupNumber) {
+        const querySelectCountGroup = `SELECT COUNT(*) AS 'countGroup' FROM printstickets 
+                WHERE i_groupNumber = ?
+                AND i_projecttype = ?
+                AND (dt_creationdate BETWEEN CONCAT((YEAR((SELECT dt_creationdate FROM printstickets WHERE i_id = ?)) - (MONTH((SELECT dt_creationdate FROM printstickets WHERE i_id = ?)) < 9)), "/09/01")
+                AND CONCAT((YEAR((SELECT dt_creationdate FROM printstickets WHERE i_id = ?)) - (MONTH((SELECT dt_creationdate FROM printstickets WHERE i_id = ?)) > 9)), "/08/31"));`;
+        const dbResSelectCounterGroup = await data.app.executeQuery(data.app.db, querySelectCountGroup, [result.groupNumber, result.idProjectType, result.id, result.id, result.id, result.id]);
+        if (dbResSelectCounterGroup[0]) {
+            console.log(dbResSelectCounterGroup[0]);
+            return {
+                type: "code",
+                code: 500
+            }
+        }
+        result.ticketCountGroup = dbResSelectCounterGroup[1][0].countGroup;
+    } else {
+        result.ticketCountGroup = null;
+    }
 
     const querySelectLogUpdProjectType = `SELECT
             CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '. a changé le type de projet en ', gdtpt.v_name) AS message,
