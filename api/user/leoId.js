@@ -232,8 +232,8 @@ async function postLoginJWT(data) {
   const resTestIfAccountExist = await data.app.executeQuery(data.app.db, queryCheckIfEmailExist, [decoded.email]);
   if (resTestIfAccountExist[1].length === 0) {
     //Création du compte
-    const queryInsert = `INSERT INTO users (v_firstName, v_lastName, v_email, v_password, b_mailValidated, b_isMicrosoft)
-                        VALUES (?, ?, ?, ?, 1, 1);`;
+    const queryInsert = `INSERT INTO users (v_firstName, v_lastName, v_email, v_password, v_title, b_mailValidated, b_isMicrosoft)
+                        VALUES (?, ?, ?, ?, ' ', 1, 1);`;
     const resInsertNewAccount = await data.app.executeQuery(data.app.db, queryInsert, [decoded.first_name, decoded.last_name, decoded.email, makeid(60)]);
     if (resInsertNewAccount[0] || resInsertNewAccount[1].affectedRows !== 1) {
       console.log(resInsertNewAccount[0]);
