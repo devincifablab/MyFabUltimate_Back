@@ -1,5 +1,5 @@
 const fs = require("fs");
-const maxTicket = 30;
+const maxTicket = 2;
 
 function makeid(length, filename) {
   var result = "";
@@ -179,6 +179,8 @@ async function getTicketAll(data) {
       code: 403,
     };
   }
+  const inputText = data.query.inputValue ? data.query.inputValue : "";
+  const selectOpenOnly = data.query.selectOpenOnly ? data.query.selectOpenOnly : false;
   const query = `SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
              tpt.v_name AS 'projectType', u.v_title AS 'title' , pt.i_groupNumber AS 'groupNumber' ,
              pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate',
@@ -191,6 +193,7 @@ async function getTicketAll(data) {
              INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id
              LEFT OUTER JOIN gd_status AS stat ON pt.i_status = stat.i_id
              WHERE pt.b_isDeleted = 0
+             ${selectOpenOnly ? "AND stat.b_isOpen = 1" : ""}
              AND (
                 "" = ?
                 OR pt.i_id LIKE CONCAT("%", ?, "%")
@@ -206,14 +209,14 @@ async function getTicketAll(data) {
              OFFSET ?;`;
 
   const dbRes = await data.app.executeQuery(data.app.db, query, [
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
+    inputText,
+    inputText,
+    inputText,
+    inputText,
+    inputText,
+    inputText,
+    inputText,
+    inputText,
     maxTicket,
     maxTicket * (data.query.page ? data.query.page : 0),
   ]);
@@ -232,6 +235,7 @@ async function getTicketAll(data) {
             INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id
             LEFT OUTER JOIN gd_status AS stat ON pt.i_status = stat.i_id
             WHERE pt.b_isDeleted = 0
+            ${selectOpenOnly ? "AND stat.b_isOpen = 1" : ""}
             AND (
                 "" = ?
                 OR pt.i_id LIKE CONCAT("%", ?, "%")
@@ -243,16 +247,7 @@ async function getTicketAll(data) {
                 OR tp.v_name LIKE CONCAT("%", ?, "%")
                 );`;
 
-  const dbResCount = await data.app.executeQuery(data.app.db, queryCount, [
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-    data.query.inputValue,
-  ]);
+  const dbResCount = await data.app.executeQuery(data.app.db, queryCount, [inputText, inputText, inputText, inputText, inputText, inputText, inputText, inputText]);
   if (dbResCount[0]) {
     console.log(dbResCount[0]);
     return {
