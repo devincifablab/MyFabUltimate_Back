@@ -1,5 +1,5 @@
 const fs = require("fs");
-const maxTicket = 2;
+const maxTicket = 30;
 
 function makeid(length, filename) {
   var result = "";
@@ -108,6 +108,8 @@ async function getTicketAllFromUser(data) {
       code: 401,
     };
   }
+
+  const page = data.query.page ? data.query.page : 0;
   const query = `SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
              tpt.v_name AS 'projectType', u.v_title AS 'title' ,
              pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate',
@@ -117,9 +119,13 @@ async function getTicketAllFromUser(data) {
              INNER JOIN gd_ticketprojecttype AS tpt ON pt.i_projecttype = tpt.i_id 
              INNER JOIN gd_ticketpriority AS tp ON pt.i_priority = tp.i_id
              LEFT OUTER JOIN gd_status AS stat ON pt.i_status = stat.i_id
-             WHERE pt.i_idUser = ? AND pt.b_isDeleted = 0 ORDER BY pt.i_id ASC`;
+             WHERE pt.i_idUser = ? 
+             AND pt.b_isDeleted = 0 
+             ORDER BY pt.i_id DESC
+             LIMIT ?
+             OFFSET ?;`;
 
-  const dbRes = await data.app.executeQuery(data.app.db, query, [userIdAgent]);
+  const dbRes = await data.app.executeQuery(data.app.db, query, [userIdAgent, maxTicket, maxTicket * page]);
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -127,10 +133,28 @@ async function getTicketAllFromUser(data) {
       code: 500,
     };
   }
+
+  const queryCount = `SELECT COUNT(1) AS count
+             FROM printstickets AS pt
+             WHERE pt.i_idUser = ? 
+             AND pt.b_isDeleted = 0 
+             ORDER BY pt.i_id DESC;`;
+
+  const dbResCount = await data.app.executeQuery(data.app.db, queryCount, [userIdAgent, maxTicket, maxTicket * page]);
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
+  const calcTicketByMaxTicket = dbResCount[1][0].count / maxTicket;
+  const maxPage = Math.trunc(calcTicketByMaxTicket) === calcTicketByMaxTicket ? calcTicketByMaxTicket : Math.trunc(calcTicketByMaxTicket) + 1;
+
   return {
     type: "json",
     code: 200,
-    json: dbRes[1],
+    json: { maxPage, values: dbRes[1] },
   };
 }
 
@@ -180,6 +204,7 @@ async function getTicketAll(data) {
     };
   }
   const inputText = data.query.inputValue ? data.query.inputValue : "";
+  const page = data.query.page ? data.query.page : 0;
   const selectOpenOnly = data.query.selectOpenOnly ? data.query.selectOpenOnly : false;
   const query = `SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
              tpt.v_name AS 'projectType', u.v_title AS 'title' , pt.i_groupNumber AS 'groupNumber' ,
@@ -218,7 +243,7 @@ async function getTicketAll(data) {
     inputText,
     inputText,
     maxTicket,
-    maxTicket * (data.query.page ? data.query.page : 0),
+    maxTicket * page,
   ]);
   if (dbRes[0]) {
     console.log(dbRes[0]);
