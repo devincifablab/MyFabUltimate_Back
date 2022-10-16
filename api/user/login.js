@@ -89,7 +89,11 @@ async function postLogin(data) {
     };
   }
   const id = dbRes[1][0].id;
-  const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id, email: data.body.email });
+  const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, {
+    id,
+    email: data.body.email,
+    expireIn: data.body.expires ? new Date(data.body.expires).toISOString() : null,
+  });
 
   return {
     type: "json",

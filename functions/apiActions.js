@@ -1,6 +1,7 @@
 const fs = require("fs");
-const sha256 = require("sha256");
+const sign = require("jwt-encode");
 const activeLogs = require("../config.json").activeLogs;
+const jwtSecret = require("../config.json").specialTocken;
 
 async function runFolder(path, app) {
   return await new Promise(async (resolve) => {
@@ -57,7 +58,7 @@ module.exports.prepareData = async (app, req, res) => {
     query: req.query,
     body: req.body,
     files: req.files,
-    userId: req.headers.dvflcookie ? app.cookiesList[req.headers.dvflcookie] : null,
+    userId: req.headers.dvflcookie && app.cookiesList[req.headers.dvflcookie] ? app.cookiesList[req.headers.dvflcookie].id : null,
     files: req.files,
     specialcode: req.headers.specialcode,
     userAuthorization: userAuthorization,
@@ -67,16 +68,16 @@ module.exports.prepareData = async (app, req, res) => {
 };
 
 module.exports.saveNewCookie = async (app, userData) => {
-  const cookie = sha256(
-    (new Date().toISOString() + userData.id + userData.email)
-      .split("")
-      .sort(function () {
-        return 0.5 - Math.random();
-      })
-      .join("")
-  );
-  app.cookiesList[cookie] = userData.id;
-  return cookie;
+  const data = {
+    email: userData.email,
+    created: new Date(),
+    expire: userData.expireIn ? userData.expireIn : "never",
+  };
+  const jwt = sign(data, jwtSecret);
+  console.log(userData);
+  app.cookiesList[jwt] = { id: userData.id, expire: userData.expireIn ? new Date(userData.expireIn) : null };
+  console.log(app.cookiesList);
+  return jwt;
 };
 
 module.exports.sendResponse = async (req, res, data) => {

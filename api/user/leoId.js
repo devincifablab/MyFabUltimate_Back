@@ -119,7 +119,7 @@ async function postMicrosoftLogin(data) {
               });
             }
             const idNewUser = resGetIdUserInserted[1][0].id;
-            const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id: idNewUser, email: data.body.email });
+            const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id: idNewUser, email: email });
 
             return resolve({
               type: "json",
@@ -143,7 +143,7 @@ async function postMicrosoftLogin(data) {
             await data.app.executeQuery(data.app.db, "UPDATE `users` SET `v_title` = ? WHERE `i_id` = ?;", [jobTitle, id]);
           }
 
-          const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id, email: data.body.email });
+          const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id, email });
 
           return resolve({
             type: "json",
@@ -250,7 +250,7 @@ async function postLoginJWT(data) {
   }
   // Too much match with tables
   if (dbRes[1].length > 1) {
-    console.log("Login match with multiple users : " + data.body.email);
+    console.log("Login match with multiple users : " + decoded.email);
     return {
       type: "code",
       code: 500,
@@ -258,7 +258,7 @@ async function postLoginJWT(data) {
   }
 
   const id = dbRes[1][0].id;
-  const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id, email: data.body.email });
+  const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id, email: decoded.email, expireIn: new Date(data.body.expires).toISOString() });
 
   return {
     type: "json",
