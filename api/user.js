@@ -1,3 +1,5 @@
+const maxUser = 30;
+
 /**
  * @swagger
  * components:
@@ -114,22 +116,24 @@
 
 module.exports.userGetAll = userGetAll;
 async function userGetAll(data) {
-    const userIdAgent = data.userId;
-    // unauthenticated user
-    if (!userIdAgent) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
-    const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "viewUsers");
-    if (!authViewResult) {
-        return {
-            type: "code",
-            code: 403
-        }
-    }
-    const querySelect = `SELECT i_id AS id,
+  const userIdAgent = data.userId;
+  // unauthenticated user
+  if (!userIdAgent) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
+  const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "viewUsers");
+  if (!authViewResult) {
+    return {
+      type: "code",
+      code: 403,
+    };
+  }
+  const inputText = data.query.inputValue ? data.query.inputValue : "";
+  const page = data.query.page ? data.query.page : 0;
+  const querySelect = `SELECT i_id AS id,
                 v_firstName AS firstName,
                 v_lastName AS lastName,
                 v_email AS email,
@@ -137,20 +141,53 @@ async function userGetAll(data) {
                 b_isMicrosoft AS "isMicrosoft"
                 FROM users
                 WHERE b_deleted = 0
-                AND b_visible = 1`;
-    const dbRes = await data.app.executeQuery(data.app.db, querySelect, []);
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
+                AND b_visible = 1
+                AND (
+                    "" = ?
+                    OR i_id LIKE CONCAT("%", ?, "%")
+                    OR v_firstName LIKE CONCAT("%", ?, "%")
+                    OR v_lastName LIKE CONCAT("%", ?, "%")
+                    OR v_email LIKE CONCAT("%", ?, "%")
+                    )
+                LIMIT ?
+                OFFSET ?;`;
+  const dbRes = await data.app.executeQuery(data.app.db, querySelect, [inputText, inputText, inputText, inputText, inputText, maxUser, maxUser * page]);
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
     return {
-        type: "json",
-        code: 200,
-        json: dbRes[1]
-    }
+      type: "code",
+      code: 500,
+    };
+  }
+
+  const queryCount = `SELECT COUNT(1) AS count
+                FROM users
+                WHERE b_deleted = 0
+                AND b_visible = 1
+                AND (
+                    "" = ?
+                    OR i_id LIKE CONCAT("%", ?, "%")
+                    OR v_firstName LIKE CONCAT("%", ?, "%")
+                    OR v_lastName LIKE CONCAT("%", ?, "%")
+                    OR v_email LIKE CONCAT("%", ?, "%")
+                    );`;
+
+  const dbResCount = await data.app.executeQuery(data.app.db, queryCount, [inputText, inputText, inputText, inputText, inputText, maxUser, maxUser * page]);
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
+  const calcUserByMaxUser = dbResCount[1][0].count / maxUser;
+  const maxPage = Math.trunc(calcUserByMaxUser) === calcUserByMaxUser ? calcUserByMaxUser : Math.trunc(calcUserByMaxUser) + 1;
+
+  return {
+    type: "json",
+    code: 200,
+    json: { maxPage: maxPage, values: dbRes[1] },
+  };
 }
 
 /**
@@ -180,18 +217,17 @@ async function userGetAll(data) {
  *        description: "Internal error with the request"
  */
 
-
 module.exports.userGetMe = userGetMe;
 async function userGetMe(data) {
-    const userIdAgent = data.userId;
-    // unauthenticated user
-    if (!userIdAgent) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
-    const querySelect = `SELECT i_id AS id,
+  const userIdAgent = data.userId;
+  // unauthenticated user
+  if (!userIdAgent) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
+  const querySelect = `SELECT i_id AS id,
                     v_firstName AS "firstName",
                     v_lastName AS "lastName",
                     v_email AS "email",
@@ -205,29 +241,28 @@ async function userGetMe(data) {
                     FROM users
                     WHERE i_id = ?
                     AND b_deleted = 0`;
-    const dbRes = await data.app.executeQuery(data.app.db, querySelect, [userIdAgent, userIdAgent]);
-    // The sql request has an error
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
-    // The response has no value
-    if (dbRes[1].length !== 1) {
-        return {
-            type: "code",
-            code: 204
-        }
-    }
+  const dbRes = await data.app.executeQuery(data.app.db, querySelect, [userIdAgent, userIdAgent]);
+  // The sql request has an error
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
     return {
-        type: "json",
-        code: 200,
-        json: dbRes[1][0]
-    }
+      type: "code",
+      code: 500,
+    };
+  }
+  // The response has no value
+  if (dbRes[1].length !== 1) {
+    return {
+      type: "code",
+      code: 204,
+    };
+  }
+  return {
+    type: "json",
+    code: 200,
+    json: dbRes[1][0],
+  };
 }
-
 
 /**
  * @swagger
@@ -268,33 +303,32 @@ async function userGetMe(data) {
  *        description: "Internal error with the request"
  */
 
-
 module.exports.userGetById = userGetById;
 async function userGetById(data) {
-    const userIdAgent = data.userId;
-    const idUserTarget = data.params.id;
-    // Id is not a number
-    if (isNaN(idUserTarget)) {
-        return {
-            type: "code",
-            code: 400
-        }
-    }
-    // unauthenticated user
-    if (!userIdAgent) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
-    const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "viewUsers");
-    if (!authViewResult) {
-        return {
-            type: "code",
-            code: 403
-        }
-    }
-    const querySelect = `SELECT i_id AS "id",
+  const userIdAgent = data.userId;
+  const idUserTarget = data.params.id;
+  // Id is not a number
+  if (isNaN(idUserTarget)) {
+    return {
+      type: "code",
+      code: 400,
+    };
+  }
+  // unauthenticated user
+  if (!userIdAgent) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
+  const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "viewUsers");
+  if (!authViewResult) {
+    return {
+      type: "code",
+      code: 403,
+    };
+  }
+  const querySelect = `SELECT i_id AS "id",
                     v_firstName AS "firstName",
                     v_lastName AS "lastName",
                     v_email AS "email",
@@ -308,27 +342,27 @@ async function userGetById(data) {
                     FROM users
                     WHERE i_id = ?
                     AND b_deleted = 0`;
-    const dbRes = await data.app.executeQuery(data.app.db, querySelect, [idUserTarget, idUserTarget]);
-    // The sql request has an error
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
-    // The response has no value
-    if (dbRes[1].length !== 1) {
-        return {
-            type: "code",
-            code: 204
-        }
-    }
+  const dbRes = await data.app.executeQuery(data.app.db, querySelect, [idUserTarget, idUserTarget]);
+  // The sql request has an error
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
     return {
-        type: "json",
-        code: 200,
-        json: dbRes[1][0]
-    }
+      type: "code",
+      code: 500,
+    };
+  }
+  // The response has no value
+  if (dbRes[1].length !== 1) {
+    return {
+      type: "code",
+      code: 204,
+    };
+  }
+  return {
+    type: "json",
+    code: 200,
+    json: dbRes[1][0],
+  };
 }
 
 /**
@@ -368,60 +402,60 @@ async function userGetById(data) {
 
 module.exports.userDeleteById = userDeleteById;
 async function userDeleteById(data) {
-    const userIdAgent = data.userId;
-    const idUserTarget = data.params ? data.params.id : undefined;
-    // if the user is not allowed
-    if (!userIdAgent) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
-    const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "viewUsers");
-    if (!authViewResult) {
-        return {
-            type: "code",
-            code: 403
-        }
-    }
-    const authManageUserResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "manageUser");
-    if (!authManageUserResult) {
-        return {
-            type: "code",
-            code: 403
-        }
-    }
-    // Id is not a number or user try to delete himself
-    if (isNaN(idUserTarget) || idUserTarget == userIdAgent) {
-        return {
-            type: "code",
-            code: 400
-        }
-    }
-    const queryUpdate = `UPDATE users
+  const userIdAgent = data.userId;
+  const idUserTarget = data.params ? data.params.id : undefined;
+  // if the user is not allowed
+  if (!userIdAgent) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
+  const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "viewUsers");
+  if (!authViewResult) {
+    return {
+      type: "code",
+      code: 403,
+    };
+  }
+  const authManageUserResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "manageUser");
+  if (!authManageUserResult) {
+    return {
+      type: "code",
+      code: 403,
+    };
+  }
+  // Id is not a number or user try to delete himself
+  if (isNaN(idUserTarget) || idUserTarget == userIdAgent) {
+    return {
+      type: "code",
+      code: 400,
+    };
+  }
+  const queryUpdate = `UPDATE users
                         SET b_deleted = "1",
                         dt_creationdate = CURRENT_TIMESTAMP
                         WHERE i_id = ?;`;
-    const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [idUserTarget]);
-    // The sql request has an error
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
-    // The response has no value
-    if (dbRes[1].changedRows !== 1) {
-        return {
-            type: "code",
-            code: 204
-        }
-    }
+  const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [idUserTarget]);
+  // The sql request has an error
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
     return {
-        type: "code",
-        code: 200
-    }
+      type: "code",
+      code: 500,
+    };
+  }
+  // The response has no value
+  if (dbRes[1].changedRows !== 1) {
+    return {
+      type: "code",
+      code: 204,
+    };
+  }
+  return {
+    type: "code",
+    code: 200,
+  };
 }
 
 /**
@@ -449,20 +483,21 @@ async function userDeleteById(data) {
 const config = require("../config.json");
 module.exports.getDicordLink = getDicordLink;
 async function getDicordLink(data) {
-    if (!config.bot || !config.bot.clientId) {
-        console.log("Discord link with MyFab not configured");
-        return {
-            type: "code",
-            code: 204
-        }
-    }
+  if (!config.bot || !config.bot.clientId) {
+    console.log("Discord link with MyFab not configured");
     return {
-        type: "json",
-        code: 200,
-        json: {
-            result: "https://discord.com/oauth2/authorize?client_id=" + config.bot.clientId + "&redirect_uri=http%3A%2F%2Flocalhost%2FdiscordConnection&response_type=code&scope=identify"
-        }
-    }
+      type: "code",
+      code: 204,
+    };
+  }
+  return {
+    type: "json",
+    code: 200,
+    json: {
+      result:
+        "https://discord.com/oauth2/authorize?client_id=" + config.bot.clientId + "&redirect_uri=http%3A%2F%2Flocalhost%2FdiscordConnection&response_type=code&scope=identify",
+    },
+  };
 }
 
 /**
@@ -490,37 +525,39 @@ async function getDicordLink(data) {
 const axios = require("axios");
 module.exports.getDicordInvite = getDicordInvite;
 async function getDicordInvite(data) {
-    if (!config.bot || !config.bot.clientId) {
-        console.log("Discord link with MyFab not configured");
-        return {
-            type: "code",
-            code: 204
-        }
-    }
-    const res = await new Promise(async (resolve, reject) => {
-        await axios({
-            method: 'GET',
-            url: config.url + config.portBot + "/api/invite/",
-        }).then(async (response) => {
-            resolve(response.data.result)
-        }).catch((err) => {
-            resolve(null);
-        })
-    })
-
-    if (res) {
-        return {
-            type: "json",
-            code: 200,
-            json: {
-                result: "https://discord.gg/" + res
-            }
-        }
-    }
+  if (!config.bot || !config.bot.clientId) {
+    console.log("Discord link with MyFab not configured");
     return {
-        type: "code",
-        code: 204
-    }
+      type: "code",
+      code: 204,
+    };
+  }
+  const res = await new Promise(async (resolve, reject) => {
+    await axios({
+      method: "GET",
+      url: config.url + config.portBot + "/api/invite/",
+    })
+      .then(async (response) => {
+        resolve(response.data.result);
+      })
+      .catch((err) => {
+        resolve(null);
+      });
+  });
+
+  if (res) {
+    return {
+      type: "json",
+      code: 200,
+      json: {
+        result: "https://discord.gg/" + res,
+      },
+    };
+  }
+  return {
+    type: "code",
+    code: 204,
+  };
 }
 
 /**
@@ -556,188 +593,198 @@ async function getDicordInvite(data) {
 const DiscordOauth2 = require("discord-oauth2");
 module.exports.setLinkDiscordAccount = setLinkDiscordAccount;
 async function setLinkDiscordAccount(data) {
-    if (!config.bot || !config.bot.clientId || !config.bot.clientSecret) {
-        console.log("Discord link with MyFab not configured");
-        return {
-            type: "code",
-            code: 500
-        }
-    }
+  if (!config.bot || !config.bot.clientId || !config.bot.clientSecret) {
+    console.log("Discord link with MyFab not configured");
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
 
-    const userId = data.userId;
-    if (!userId) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
+  const userId = data.userId;
+  if (!userId) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
 
-    // The body does not have all the necessary field
-    const access_token = data.params.code;
-    if (!access_token) {
-        return {
-            type: "code",
-            code: 400
-        }
-    }
+  // The body does not have all the necessary field
+  const access_token = data.params.code;
+  if (!access_token) {
+    return {
+      type: "code",
+      code: 400,
+    };
+  }
 
-    return await new Promise((resolve) => {
-        data.getDiscordUser({
-            clientId: config.bot.clientId,
-            clientSecret: config.bot.clientSecret,
-            code: access_token,
-            scope: "identify",
-            grantType: "authorization_code",
-            redirectUri: (config.url.split(":")[0] + ":" + config.url.split(":")[1]) + "/" + "discordConnection",
-        }, async (userDiscordData) => {
-            const querySelect = `SELECT 1 FROM users
+  return await new Promise((resolve) => {
+    data.getDiscordUser(
+      {
+        clientId: config.bot.clientId,
+        clientSecret: config.bot.clientSecret,
+        code: access_token,
+        scope: "identify",
+        grantType: "authorization_code",
+        redirectUri: config.url.split(":")[0] + ":" + config.url.split(":")[1] + "/" + "discordConnection",
+      },
+      async (userDiscordData) => {
+        const querySelect = `SELECT 1 FROM users
                                 WHERE v_discordid = ?
                                 OR (i_id = ?
                                 AND v_discordid IS NOT NULL)`;
 
-            const dbResSelect = await data.app.executeQuery(data.app.db, querySelect, [userDiscordData.id, userId]);
-            if (dbResSelect[0]) {
-                console.log(dbResSelect[0]);
-                resolve({
-                    type: "code",
-                    code: 500
-                })
-            }
-            if (dbResSelect[1].length != 0) {
-                resolve({
-                    type: "code",
-                    code: 403
-                })
-            }
+        const dbResSelect = await data.app.executeQuery(data.app.db, querySelect, [userDiscordData.id, userId]);
+        if (dbResSelect[0]) {
+          console.log(dbResSelect[0]);
+          resolve({
+            type: "code",
+            code: 500,
+          });
+        }
+        if (dbResSelect[1].length != 0) {
+          resolve({
+            type: "code",
+            code: 403,
+          });
+        }
 
-            const queryUpdate = `UPDATE users SET
+        const queryUpdate = `UPDATE users SET
                    v_discordid = ? WHERE
                    i_id = ?;`;
 
-            const dbResUpdate = await data.app.executeQuery(data.app.db, queryUpdate, [userDiscordData.id, userId]);
-            if (dbResUpdate[0]) {
-                console.log(dbResUpdate[0]);
-                resolve({
-                    type: "code",
-                    code: 500
-                })
-            }
-            resolve({
-                type: "json",
-                code: 200,
-                json: {
-                    tag: userDiscordData.username + "#" + userDiscordData.discriminator,
-                    avatar: userDiscordData.avatar ? "https://cdn.discordapp.com/avatars/" + userDiscordData.id + "/" + userDiscordData.avatar + ".webp?size=128" : "https://external-preview.redd.it/4PE-nlL_PdMD5PrFNLnjurHQ1QKPnCvg368LTDnfM-M.png?auto=webp&s=ff4c3fbc1cce1a1856cff36b5d2a40a6d02cc1c3"
-                }
-            })
-        }, async () => {
-            resolve({
-                type: "code",
-                code: 403
-            })
-        })
-    })
+        const dbResUpdate = await data.app.executeQuery(data.app.db, queryUpdate, [userDiscordData.id, userId]);
+        if (dbResUpdate[0]) {
+          console.log(dbResUpdate[0]);
+          resolve({
+            type: "code",
+            code: 500,
+          });
+        }
+        resolve({
+          type: "json",
+          code: 200,
+          json: {
+            tag: userDiscordData.username + "#" + userDiscordData.discriminator,
+            avatar: userDiscordData.avatar
+              ? "https://cdn.discordapp.com/avatars/" + userDiscordData.id + "/" + userDiscordData.avatar + ".webp?size=128"
+              : "https://external-preview.redd.it/4PE-nlL_PdMD5PrFNLnjurHQ1QKPnCvg368LTDnfM-M.png?auto=webp&s=ff4c3fbc1cce1a1856cff36b5d2a40a6d02cc1c3",
+          },
+        });
+      },
+      async () => {
+        resolve({
+          type: "code",
+          code: 403,
+        });
+      }
+    );
+  });
 }
-
-
 
 module.exports.startApi = startApi;
 async function startApi(app) {
-    app.get("/api/user/", async function (req, res) {
-        try {
-            const data = await require("../functions/apiActions").prepareData(app, req, res);
-            const result = await userGetAll(data);
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/user/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/user/", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      const result = await userGetAll(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/user/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.get("/api/user/me", async function (req, res) {
-        try {
-            const data = await require("../functions/apiActions").prepareData(app, req, res);
-            const result = await userGetMe(data);
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/user/me");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/user/me", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      const result = await userGetMe(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/user/me");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.get("/api/user/:id", async function (req, res) {
-        try {
-            const data = await require("../functions/apiActions").prepareData(app, req, res);
-            const result = await userGetById(data);
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/user/:id");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/user/:id", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      const result = await userGetById(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/user/:id");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.delete("/api/user/:id", async function (req, res) {
-        try {
-            const data = await require("../functions/apiActions").prepareData(app, req, res);
-            const result = await userDeleteById(data);
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: DELETE /api/user/:id");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.delete("/api/user/:id", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      const result = await userDeleteById(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: DELETE /api/user/:id");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.get("/api/user/discord/link/", async function (req, res) {
-        try {
-            const data = {};
-            const result = await getDicordLink(data)
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/user/discord/link/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/user/discord/link/", async function (req, res) {
+    try {
+      const data = {};
+      const result = await getDicordLink(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/user/discord/link/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.get("/api/user/discord/serverInvite/", async function (req, res) {
-        try {
-            const data = {};
-            const result = await getDicordInvite(data)
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/user/discord/serverInvite/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/user/discord/serverInvite/", async function (req, res) {
+    try {
+      const data = {};
+      const result = await getDicordInvite(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/user/discord/serverInvite/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.post("/api/user/discord/:code", async function (req, res) {
-        try {
-            const data = await require("../functions/apiActions").prepareData(app, req, res);
-            data.getDiscordUser = async (data, callback, callbackError) => {
-                await new Promise((resolve) => {
-                    const oauth = new DiscordOauth2();
-                    oauth.tokenRequest(data).then((result) => {
-                        oauth.getUser(result.access_token).then(async (userDiscordData) => {
-                            resolve(await callback(userDiscordData));
-                        }).catch(async () => {
-                            resolve(await callbackError());
-                        })
-                    }).catch(async () => {
-                        resolve(await callbackError());
-                    })
+  app.post("/api/user/discord/:code", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      data.getDiscordUser = async (data, callback, callbackError) => {
+        await new Promise((resolve) => {
+          const oauth = new DiscordOauth2();
+          oauth
+            .tokenRequest(data)
+            .then((result) => {
+              oauth
+                .getUser(result.access_token)
+                .then(async (userDiscordData) => {
+                  resolve(await callback(userDiscordData));
                 })
-            }
-            const result = await setLinkDiscordAccount(data)
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: POST /api/user/discord/:code");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+                .catch(async () => {
+                  resolve(await callbackError());
+                });
+            })
+            .catch(async () => {
+              resolve(await callbackError());
+            });
+        });
+      };
+      const result = await setLinkDiscordAccount(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: POST /api/user/discord/:code");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 }
