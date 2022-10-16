@@ -1,6 +1,5 @@
 const sha256 = require("sha256");
 
-
 /**
  * @swagger
  * /user/login/:
@@ -43,79 +42,75 @@ const sha256 = require("sha256");
 
 module.exports.postLogin = postLogin;
 async function postLogin(data) {
-    // The body does not have all the necessary field
-    if (!data.body || !data.body.email || !data.body.password) {
-        return {
-            type: "code",
-            code: 400
-        }
-    }
+  // The body does not have all the necessary field
+  if (!data.body || !data.body.email || !data.body.password) {
+    return {
+      type: "code",
+      code: 400,
+    };
+  }
 
-    const querySelect = `SELECT i_id AS 'id',
+  const querySelect = `SELECT i_id AS 'id',
                         b_mailValidated AS 'mailValidated'
                         FROM users
                         WHERE v_email = ?
                         AND v_password = ?
                         AND b_deleted = 0;`;
-    const dbRes = await data.app.executeQuery(data.app.db, querySelect, [data.body.email, sha256(data.body.password)]);
-    // Error with the sql request
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
-    // No match with tables => invalid email or password
-    if (dbRes[1].length < 1) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
-    // Too much match with tables
-    if (dbRes[1].length > 1) {
-        console.log("Login match with multiple users : " + data.body.email);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
-
-    const mailValidated = dbRes[1][0].mailValidated;
-    if (mailValidated === 0) {
-        return {
-            type: "code",
-            code: 204
-        }
-    }
-    const id = dbRes[1][0].id;
-    const cookie = sha256((new Date().toISOString() + id + data.body.email).split('').sort(function () {
-        return 0.5 - Math.random()
-    }).join(''));
-    data.app.cookiesList[cookie] = id;
-
+  const dbRes = await data.app.executeQuery(data.app.db, querySelect, [data.body.email, sha256(data.body.password)]);
+  // Error with the sql request
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
     return {
-        type: "json",
-        code: 200,
-        json: {
-            dvflCookie: cookie
-        }
-    }
-}
+      type: "code",
+      code: 500,
+    };
+  }
+  // No match with tables => invalid email or password
+  if (dbRes[1].length < 1) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
+  // Too much match with tables
+  if (dbRes[1].length > 1) {
+    console.log("Login match with multiple users : " + data.body.email);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
 
+  const mailValidated = dbRes[1][0].mailValidated;
+  if (mailValidated === 0) {
+    return {
+      type: "code",
+      code: 204,
+    };
+  }
+  const id = dbRes[1][0].id;
+  const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id, email: data.body.email });
+
+  return {
+    type: "json",
+    code: 200,
+    json: {
+      dvflCookie: cookie,
+    },
+  };
+}
 
 module.exports.startApi = startApi;
 async function startApi(app) {
-    app.post("/api/user/login/", async function (req, res) {
-        try {
-            const data = await require("../../functions/apiActions").prepareData(app, req, res);
-            const result = await postLogin(data);
-            await require("../../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: POST /api/user/login/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.post("/api/user/login/", async function (req, res) {
+    try {
+      const data = await require("../../functions/apiActions").prepareData(app, req, res);
+      const result = await postLogin(data);
+      await require("../../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: POST /api/user/login/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 }

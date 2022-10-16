@@ -119,15 +119,7 @@ async function postMicrosoftLogin(data) {
               });
             }
             const idNewUser = resGetIdUserInserted[1][0].id;
-            const cookie = sha256(
-              (new Date().toISOString() + idNewUser + email)
-                .split("")
-                .sort(function () {
-                  return 0.5 - Math.random();
-                })
-                .join("")
-            );
-            data.app.cookiesList[cookie] = idNewUser;
+            const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id: idNewUser, email: data.body.email });
 
             return resolve({
               type: "json",
@@ -151,15 +143,7 @@ async function postMicrosoftLogin(data) {
             await data.app.executeQuery(data.app.db, "UPDATE `users` SET `v_title` = ? WHERE `i_id` = ?;", [jobTitle, id]);
           }
 
-          const cookie = sha256(
-            (new Date().toISOString() + id + email)
-              .split("")
-              .sort(function () {
-                return 0.5 - Math.random();
-              })
-              .join("")
-          );
-          data.app.cookiesList[cookie] = id;
+          const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id, email: data.body.email });
 
           return resolve({
             type: "json",
@@ -274,15 +258,7 @@ async function postLoginJWT(data) {
   }
 
   const id = dbRes[1][0].id;
-  const cookie = sha256(
-    (new Date().toISOString() + id + data.body.email)
-      .split("")
-      .sort(function () {
-        return 0.5 - Math.random();
-      })
-      .join("")
-  );
-  data.app.cookiesList[cookie] = id;
+  const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id, email: data.body.email });
 
   return {
     type: "json",
