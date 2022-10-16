@@ -24,7 +24,7 @@ async function action(app) {
 module.exports.run = async (app) => {
   action(app);
   new CronJob(
-    "00 24 08 * * *",
+    "10 24 08 * * *",
     async function () {
       action(app);
     },

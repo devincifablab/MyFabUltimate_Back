@@ -74,9 +74,7 @@ module.exports.saveNewCookie = async (app, userData) => {
     expire: userData.expireIn ? userData.expireIn : "never",
   };
   const jwt = sign(data, jwtSecret);
-  console.log(userData);
   app.cookiesList[jwt] = { id: userData.id, expire: userData.expireIn ? new Date(userData.expireIn) : null };
-  console.log(app.cookiesList);
   return jwt;
 };
 
