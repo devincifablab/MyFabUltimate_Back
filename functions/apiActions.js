@@ -53,7 +53,7 @@ const userAuthorization = require("../functions/userAuthorization");
 module.exports.prepareData = async (app, req, res) => {
   if (activeLogs) addLogsApiRequest(req);
   const data = {
-    app: app,
+    app,
     params: req.params,
     query: req.query,
     body: req.body,

@@ -1,3 +1,4 @@
+const fs = require("fs");
 const sha256 = require("sha256");
 const axios = require("axios");
 const jwt_decode = require("jwt-decode");
@@ -46,6 +47,14 @@ function makeid(length) {
 
 module.exports.postMicrosoftLogin = postMicrosoftLogin;
 async function postMicrosoftLogin(data) {
+  const myFabOpen = JSON.parse(fs.readFileSync(__dirname + "/../../data/serviceData.json")).myFabOpen;
+  if (!myFabOpen) {
+    return {
+      type: "code",
+      code: 403,
+    };
+  }
+
   const token = data.authorization;
   // The body does not have all the necessary field
   if (!token) {
@@ -202,6 +211,14 @@ async function postMicrosoftLogin(data) {
 
 module.exports.postLoginJWT = postLoginJWT;
 async function postLoginJWT(data) {
+  const myFabOpen = JSON.parse(fs.readFileSync(__dirname + "/../../data/serviceData.json")).myFabOpen;
+  if (!myFabOpen) {
+    return {
+      type: "code",
+      code: 403,
+    };
+  }
+
   if (!data.body || !data.body.JWT) {
     return {
       type: "code",

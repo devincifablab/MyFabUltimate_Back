@@ -79,6 +79,7 @@ fs.readdir(__dirname + "/tmp", (err, files) => {
 if (!fs.existsSync(__dirname + "/data")) fs.mkdirSync(__dirname + "/data");
 if (!fs.existsSync(__dirname + "/data/files")) fs.mkdirSync(__dirname + "/data/files");
 if (!fs.existsSync(__dirname + "/data/files/stl")) fs.mkdirSync(__dirname + "/data/files/stl");
+if (!fs.existsSync(__dirname + "/data/serviceData.json")) fs.writeFileSync(__dirname + "/data/serviceData.json", JSON.stringify({ myFabOpen: true }));
 
 async function start() {
   app.db = await require("./functions/dataBase/createConnection").open();

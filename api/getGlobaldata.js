@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 /**
  * @swagger
  * components:
@@ -25,7 +27,7 @@
  * @swagger
  * tags:
  *   name: GlobalData
- *   description: Every globalData information 
+ *   description: Every globalData information
  */
 
 /**
@@ -49,25 +51,25 @@
 
 module.exports.getStatus = getStatus;
 async function getStatus(data) {
-    const query = `SELECT stat.i_id as id,
+  const query = `SELECT stat.i_id as id,
              stat.v_name as name,
              stat.v_color as color
              FROM gd_status AS stat `;
 
-    const dbRes = await data.app.executeQuery(data.app.db, query, []);
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
-
+  const dbRes = await data.app.executeQuery(data.app.db, query, []);
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
     return {
-        type: "json",
-        code: 200,
-        json: dbRes[1]
-    }
+      type: "code",
+      code: 500,
+    };
+  }
+
+  return {
+    type: "json",
+    code: 200,
+    json: dbRes[1],
+  };
 }
 
 /**
@@ -108,133 +110,169 @@ async function getStatus(data) {
  *        description: "Internal error with the request"
  */
 
- module.exports.getProjectType = getProjectType;
- async function getProjectType(data) {
-     const query = `SELECT projType.i_id as id,
+module.exports.getProjectType = getProjectType;
+async function getProjectType(data) {
+  const query = `SELECT projType.i_id as id,
              projType.v_name as name
              FROM gd_ticketprojecttype AS projType `;
- 
-     const dbRes = await data.app.executeQuery(data.app.db, query, []);
-     if (dbRes[0]) {
-         console.log(dbRes[0]);
-         return {
-             type: "code",
-             code: 500
-         }
-     }
- 
-     return {
-         type: "json",
-         code: 200,
-         json: dbRes[1]
-     }
- }
 
- /**
-  * @swagger
-  * /printer/:
-  *   get:
-  *     summary: Get list of printers.
-  *     tags: [GlobalData]
-  *     responses:
-  *       "200":
-  *         description: "Get list of printers."
-  *         content:
-  */
- 
- module.exports.getPrinter = getPrinter;
- async function getPrinter(data) {
-    const query = `SELECT printer.i_id as id,
+  const dbRes = await data.app.executeQuery(data.app.db, query, []);
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
+
+  return {
+    type: "json",
+    code: 200,
+    json: dbRes[1],
+  };
+}
+
+/**
+ * @swagger
+ * /printer/:
+ *   get:
+ *     summary: Get list of printers.
+ *     tags: [GlobalData]
+ *     responses:
+ *       "200":
+ *         description: "Get list of printers."
+ *         content:
+ */
+
+module.exports.getPrinter = getPrinter;
+async function getPrinter(data) {
+  const query = `SELECT printer.i_id as id,
             printer.v_name as name
             FROM gd_printer AS printer
             WHERE printer.b_isAvailable = 1;`;
 
-    const dbRes = await data.app.executeQuery(data.app.db, query, []);
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
-
+  const dbRes = await data.app.executeQuery(data.app.db, query, []);
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
     return {
-        type: "json",
-        code: 200,
-        json: dbRes[1]
-    }
- }
+      type: "code",
+      code: 500,
+    };
+  }
 
- /**
-  * @swagger
-  * /version/:
-  *   get:
-  *     summary: Get the version of the project.
-  *     tags: [GlobalData]
-  *     responses:
-  *       "200":
-  *         description: "Get the version of the project."
-  *         content:
-  */
- 
- module.exports.getVersion = getVersion;
- async function getVersion(data) { 
-     return {
-         type: "json",
-         code: 200,
-         json: {
-             version: require("../package.json").version
-         }
-     }
- }
+  return {
+    type: "json",
+    code: 200,
+    json: dbRes[1],
+  };
+}
+
+/**
+ * @swagger
+ * /myFabOpen/:
+ *   get:
+ *     summary: Get myFabOpen variable.
+ *     tags: [GlobalData]
+ *     responses:
+ *       "200":
+ *         description: "Get myFabOpen variable."
+ *         content:
+ */
+
+module.exports.getMyFabOpen = getMyFabOpen;
+async function getMyFabOpen(data) {
+  const myFabOpen = JSON.parse(fs.readFileSync(__dirname + "/../data/serviceData.json")).myFabOpen;
+  return {
+    type: "json",
+    code: 200,
+    json: {
+      myFabOpen,
+    },
+  };
+}
+
+/**
+ * @swagger
+ * /version/:
+ *   get:
+ *     summary: Get the version of the project.
+ *     tags: [GlobalData]
+ *     responses:
+ *       "200":
+ *         description: "Get the version of the project."
+ *         content:
+ */
+
+module.exports.getVersion = getVersion;
+async function getVersion(data) {
+  return {
+    type: "json",
+    code: 200,
+    json: {
+      version: require("../package.json").version,
+    },
+  };
+}
 
 module.exports.startApi = startApi;
 async function startApi(app) {
-    app.get("/api/status", async function (req, res) {
-        try {
-            const data = await require("../functions/apiActions").prepareData(app, req, res);
-            const result = await getStatus(data);
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/status/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/status", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      const result = await getStatus(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/status/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.get("/api/projectType/", async function (req, res) {
-        try {
-            const data = await require("../functions/apiActions").prepareData(app, req, res);
-            const result = await getProjectType(data)
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/projectType/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/projectType/", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      const result = await getProjectType(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/projectType/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.get("/api/printer/", async function (req, res) {
-        try {
-            const data = await require("../functions/apiActions").prepareData(app, req, res);
-            const result = await getPrinter(data)
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/printer/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/printer/", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      const result = await getPrinter(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/printer/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.get("/api/version/", async function (req, res) {
-        try {
-            const data = await require("../functions/apiActions").prepareData(app, req, res);
-            const result = await getVersion(data)
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/version/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/version/", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      const result = await getVersion(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/version/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
+
+  app.get("/api/myFabOpen/", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      const result = await getMyFabOpen(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/version/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 }
