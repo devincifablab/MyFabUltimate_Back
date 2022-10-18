@@ -432,9 +432,9 @@ async function userDeleteById(data) {
     };
   }
   const queryUpdate = `UPDATE users
-                        SET b_deleted = "1",
-                        dt_creationdate = CURRENT_TIMESTAMP
-                        WHERE i_id = ?;`;
+                         SET b_deleted = "1",
+                         dt_creationdate = CURRENT_TIMESTAMP
+                         WHERE i_id = ?;`;
   const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [idUserTarget]);
   // The sql request has an error
   if (dbRes[0]) {
@@ -451,6 +451,60 @@ async function userDeleteById(data) {
       code: 204,
     };
   }
+  return {
+    type: "code",
+    code: 200,
+  };
+}
+
+module.exports.userRenamePut = userRenamePut;
+async function userRenamePut(data) {
+  const idUserTarget = data.params ? data.params.id : undefined;
+  const specialCode = await require("../functions/userAuthorization").getSpecialCode();
+  // Id is not a number or user try to delete himself
+  if (isNaN(idUserTarget) || !specialCode || specialCode !== data.specialcode || !data.body) {
+    return {
+      type: "code",
+      code: 404,
+    };
+  }
+  if (data.body.firstName) {
+    const queryUpdate = `UPDATE users SET v_firstName = ? WHERE i_id = ?;`;
+    const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [data.body.firstName, idUserTarget]);
+    // The sql request has an error
+    if (dbRes[0]) {
+      console.log(dbRes[0]);
+      return {
+        type: "code",
+        code: 500,
+      };
+    }
+  }
+  if (data.body.lastName) {
+    const queryUpdate = `UPDATE users SET v_lastName = ? WHERE i_id = ?;`;
+    const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [data.body.lastName, idUserTarget]);
+    // The sql request has an error
+    if (dbRes[0]) {
+      console.log(dbRes[0]);
+      return {
+        type: "code",
+        code: 500,
+      };
+    }
+  }
+  if (data.body.title) {
+    const queryUpdate = `UPDATE users SET v_title = ? WHERE i_id = ?;`;
+    const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [data.body.title, idUserTarget]);
+    // The sql request has an error
+    if (dbRes[0]) {
+      console.log(dbRes[0]);
+      return {
+        type: "code",
+        code: 500,
+      };
+    }
+  }
+
   return {
     type: "code",
     code: 200,
@@ -726,6 +780,18 @@ async function startApi(app) {
       await require("../functions/apiActions").sendResponse(req, res, result);
     } catch (error) {
       console.log("ERROR: DELETE /api/user/:id");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
+
+  app.put("/api/user/rename/:id", async function (req, res) {
+    try {
+      const data = await require("../functions/apiActions").prepareData(app, req, res);
+      const result = await userRenamePut(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: PUT /api/user/rename/:id");
       console.log(error);
       res.sendStatus(500);
     }
