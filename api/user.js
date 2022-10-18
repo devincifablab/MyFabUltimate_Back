@@ -149,8 +149,7 @@ async function userGetAll(data) {
                     OR v_lastName LIKE CONCAT("%", ?, "%")
                     OR v_email LIKE CONCAT("%", ?, "%")
                     )
-                LIMIT ?
-                OFFSET ?;`;
+                ${data.query.all ? "" : "LIMIT ? OFFSET ?"};`;
   const dbRes = await data.app.executeQuery(data.app.db, querySelect, [inputText, inputText, inputText, inputText, inputText, maxUser, maxUser * page]);
   if (dbRes[0]) {
     console.log(dbRes[0]);
@@ -186,7 +185,7 @@ async function userGetAll(data) {
   return {
     type: "json",
     code: 200,
-    json: { maxPage: maxPage, values: dbRes[1] },
+    json: { maxPage: data.query.all ? 1 : maxPage, values: dbRes[1] },
   };
 }
 

@@ -122,8 +122,7 @@ async function getTicketAllFromUser(data) {
              WHERE pt.i_idUser = ? 
              AND pt.b_isDeleted = 0 
              ORDER BY pt.i_id DESC
-             LIMIT ?
-             OFFSET ?;`;
+             ${data.query.all ? "" : "LIMIT ? OFFSET ?"};`;
 
   const dbRes = await data.app.executeQuery(data.app.db, query, [userIdAgent, maxTicket, maxTicket * page]);
   if (dbRes[0]) {
@@ -154,7 +153,7 @@ async function getTicketAllFromUser(data) {
   return {
     type: "json",
     code: 200,
-    json: { maxPage, values: dbRes[1] },
+    json: { maxPage: data.query.all ? 1 : maxPage, values: dbRes[1] },
   };
 }
 
@@ -230,8 +229,7 @@ async function getTicketAll(data) {
                 OR tp.v_name LIKE CONCAT("%", ?, "%")
                 )
              ORDER BY pt.i_id ASC
-             LIMIT ?
-             OFFSET ?;`;
+             ${data.query.all ? "" : "LIMIT ? OFFSET ?"};`;
 
   const dbRes = await data.app.executeQuery(data.app.db, query, [
     inputText,
@@ -286,7 +284,7 @@ async function getTicketAll(data) {
   return {
     type: "json",
     code: 200,
-    json: { maxPage, values: dbRes[1] },
+    json: { maxPage: data.query.all ? 1 : maxPage, values: dbRes[1] },
   };
 }
 
