@@ -5,7 +5,9 @@ const expressHeader = require("express-header");
 const fs = require("fs");
 const app = express();
 const config = require(__dirname + "/config.json");
-let server = null;
+const server = require("http").Server(app);
+const io = require("socket.io")(server, { transports: ["websocket", "polling"] });
+app.io = io;
 
 app.use(
   bodyParser.urlencoded({
@@ -67,6 +69,7 @@ if (config.showSwagger) {
 }
 
 require("./functions/apiActions").startApi(app);
+require("./functions/socket-io").connection(app);
 
 //prepare folders
 if (!fs.existsSync(__dirname + "/tmp")) fs.mkdirSync(__dirname + "/tmp");
@@ -87,7 +90,7 @@ async function start() {
 
   //app.bot = require("./discordBot/index").run();
   const port = config.port;
-  server = app.listen(port);
+  server.listen(port);
   console.log();
   console.log("Server is now listening port " + port);
   if (config.showSwagger) console.log("Swagger documentation available here : " + config.url + config.port + "/api-docs");

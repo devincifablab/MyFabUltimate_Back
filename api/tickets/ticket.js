@@ -653,8 +653,8 @@ async function postTicket(data) {
       code: 500,
     };
   }
-  //Update bot channels
-  require("../..//functions/commandForBot").postTicket(lastIdentityRes[1][0].id);
+
+  data.app.io.emit("event-reload-tickets"); // reload ticket menu on client
   return {
     type: "json",
     code: 200,
@@ -756,8 +756,7 @@ async function deleteTicketWithId(data) {
     };
   }
 
-  //Update bot channels
-  require("../..//functions/commandForBot").postTicket(data.params.id);
+  data.app.io.emit("event-reload-tickets"); // reload ticket menu on client
 
   //return response
   return {
@@ -871,8 +870,7 @@ async function putTicketNewProjectType(data) {
     };
   }
 
-  //Update bot channels
-  require("../..//functions/commandForBot").postTicket(data.params.id);
+  data.app.io.emit("event-reload-tickets"); // reload ticket menu on client
 
   return {
     type: "code",
@@ -977,8 +975,7 @@ async function putTicketNewStatus(data) {
     };
   }
 
-  //Update bot channels
-  require("../..//functions/commandForBot").postTicket(data.params.id);
+  data.app.io.emit("event-reload-tickets"); // reload ticket menu on client
 
   return {
     type: "code",
