@@ -243,6 +243,7 @@ async function postLoginJWT(data) {
         code: 500,
       };
     }
+    data.app.io.emit("event-reload-users"); // reload users menu on client
   }
   //Connection
   const querySelect = `SELECT i_id AS 'id'
