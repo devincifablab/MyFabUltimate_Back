@@ -114,7 +114,8 @@ module.exports.getProjectType = getProjectType;
 async function getProjectType(data) {
   const query = `SELECT projType.i_id as id,
              projType.v_name as name
-             FROM gd_ticketprojecttype AS projType `;
+             FROM gd_ticketprojecttype AS projType
+             ORDER BY id;`;
 
   const dbRes = await data.app.executeQuery(data.app.db, query, []);
   if (dbRes[0]) {
