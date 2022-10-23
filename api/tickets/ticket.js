@@ -945,8 +945,8 @@ async function putTicketNewStatus(data) {
   }
 
   const queryUpdate = `UPDATE printstickets 
-                        SET i_status = ?
-                        WHERE i_id = ?`;
+                         SET i_status = ?
+                         WHERE i_id = ?`;
   const resUpdate = await data.app.executeQuery(data.app.db, queryUpdate, [idStatus, idTicket]);
   if (resUpdate[0]) {
     console.log(resUpdate[0]);
@@ -964,9 +964,127 @@ async function putTicketNewStatus(data) {
   }
 
   const queryInsertLog = `INSERT INTO log_ticketschange
-            (i_idUser, i_idTicket, v_action, v_newValue)
-            VALUES (?, ?, 'upd_status', ?)`;
+             (i_idUser, i_idTicket, v_action, v_newValue)
+             VALUES (?, ?, 'upd_status', ?)`;
   const resInsertLog = await data.app.executeQuery(data.app.db, queryInsertLog, [userIdAgent, idTicket, idStatus]);
+  if (resInsertLog[0]) {
+    console.log(resInsertLog[0]);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
+
+  data.app.io.emit("event-reload-tickets"); // reload ticket menu on client
+
+  return {
+    type: "code",
+    code: 200,
+  };
+}
+
+/**
+ * @swagger
+ * /ticket/{id}/setCancelStatus:
+ *   put:
+ *     summary: Change projectType of the ticket. The user need to be the applicant
+ *     tags: [Ticket]
+ *     parameters:
+ *     - name: dvflCookie
+ *       in: header
+ *       description: Cookie of the user making the request
+ *       required: true
+ *       type: string
+ *     - name: "id"
+ *       in: "path"
+ *       description: "Id of the ticket"
+ *       required: true
+ *       type: "integer"
+ *       format: "int64"
+ *     responses:
+ *       200:
+ *        description: "The projecttype has been changed"
+ *       204:
+ *        description: "No tickets have been modified"
+ *       400:
+ *        description: "Parameters or body not valid"
+ *       401:
+ *        description: "The user is unauthenticated"
+ *       403:
+ *        description: "The user is not allowed"
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+module.exports.putTicketCancelStatus = putTicketCancelStatus;
+async function putTicketCancelStatus(data) {
+  // parameters or body not valid
+  if (!data.params || !data.params.id || isNaN(data.params.id)) {
+    return {
+      type: "code",
+      code: 400,
+    };
+  }
+  const idTicket = data.params.id;
+  // if the user is not allowed
+  const userIdAgent = data.userId;
+  if (!userIdAgent) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
+
+  const querySelectTicket = `SELECT i_idUser AS 'id'
+                        FROM printstickets
+                        WHERE i_id = ?`;
+  const resGetUserTicket = await data.app.executeQuery(data.app.db, querySelectTicket, [data.params.id]);
+  if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
+    console.log(resGetUserTicket[0]);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
+  const idTicketUser = resGetUserTicket[1][0].id;
+  if (idTicketUser != userIdAgent) {
+    return {
+      type: "code",
+      code: 403,
+    };
+  }
+
+  const queryUpdate = `UPDATE printstickets 
+                        SET i_status = (
+                          SELECT i_id
+                          FROM gd_status
+                          WHERE b_isCancel = 1
+                          )
+                        WHERE i_id = ?`;
+  const resUpdate = await data.app.executeQuery(data.app.db, queryUpdate, [idTicket]);
+  if (resUpdate[0]) {
+    console.log(resUpdate[0]);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
+  // The response has no value
+  if (resUpdate[1].changedRows < 1) {
+    return {
+      type: "code",
+      code: 204,
+    };
+  }
+
+  const queryInsertLog = `INSERT INTO log_ticketschange
+            (i_idUser, i_idTicket, v_action, v_newValue)
+            VALUES (?, ?, 'upd_status', (
+              SELECT i_id
+              FROM gd_status
+              WHERE b_isCancel = 1
+              ))`;
+  const resInsertLog = await data.app.executeQuery(data.app.db, queryInsertLog, [userIdAgent, idTicket]);
   if (resInsertLog[0]) {
     console.log(resInsertLog[0]);
     return {
@@ -1064,6 +1182,18 @@ async function startApi(app) {
       await require("../../functions/apiActions").sendResponse(req, res, result);
     } catch (error) {
       console.log("ERROR: PUT /api/ticket/:id/setStatus");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
+
+  app.put("/api/ticket/:id/setCancelStatus", async function (req, res) {
+    try {
+      const data = await require("../../functions/apiActions").prepareData(app, req, res);
+      const result = await putTicketCancelStatus(data);
+      await require("../../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: PUT /api/ticket/:id/setCancelStatus");
       console.log(error);
       res.sendStatus(500);
     }

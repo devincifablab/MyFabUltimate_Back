@@ -54,7 +54,8 @@ async function getStatus(data) {
   const query = `SELECT stat.i_id as id,
              stat.v_name as name,
              stat.v_color as color
-             FROM gd_status AS stat `;
+             FROM gd_status AS stat
+             WHERE stat.b_isCancel = 0`;
 
   const dbRes = await data.app.executeQuery(data.app.db, query, []);
   if (dbRes[0]) {
