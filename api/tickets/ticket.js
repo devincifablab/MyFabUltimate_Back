@@ -371,7 +371,7 @@ async function getTicketById(data) {
   const querySelect = `SELECT pt.i_id AS 'id', pt.i_idUser AS 'idUser',CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
              tpt.v_name AS 'projectType', pt.i_projecttype AS 'idProjectType', u.v_title AS 'title' , u.v_email AS 'email' , pt.i_groupNumber AS 'groupNumber' ,
              pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate',
-             stat.v_name AS 'statusName', stat.v_color AS 'statusColor',
+             stat.v_name AS 'statusName', stat.b_isCancel AS 'isCancel', stat.v_color AS 'statusColor',
              tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' 
              FROM printstickets AS pt 
              INNER JOIN users AS u ON pt.i_idUser = u.i_id 
@@ -496,6 +496,7 @@ async function getTicketById(data) {
   result.history.sort(function (a, b) {
     return new Date(b.timeStamp) - new Date(a.timeStamp);
   });
+  result.userCanCancel = idTicketUser == userIdAgent;
 
   return {
     type: "json",
