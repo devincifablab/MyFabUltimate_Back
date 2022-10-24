@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS `gd_roles` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_
 
 CREATE TABLE IF NOT EXISTS `gd_status` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_name` VARCHAR(25) NOT NULL , `b_isOpen` BOOLEAN NOT NULL , `v_color` VARCHAR(6) NOT NULL , PRIMARY KEY (`i_id`), CONSTRAINT uk_v_name Unique (`v_name`)) ENGINE = InnoDB;
 ALTER TABLE `gd_status` ADD IF NOT EXISTS `b_isCancel` BOOLEAN NOT NULL DEFAULT FALSE AFTER `b_isOpen`;
+ALTER TABLE `gd_status` ADD IF NOT EXISTS `b_printCompleted` BOOLEAN NOT NULL DEFAULT FALSE AFTER `b_isOpen`;
 
 CREATE TABLE IF NOT EXISTS `gd_ticketpriority` ( `i_id` INT NOT NULL AUTO_INCREMENT , `v_name` VARCHAR(50) NOT NULL , `v_color` VARCHAR(6) NOT NULL , PRIMARY KEY (`i_id`), CONSTRAINT uk_v_name Unique (`v_name`)) ENGINE = InnoDB;
 
