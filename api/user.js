@@ -114,6 +114,21 @@ const maxUser = 30;
  *        description: "Internal error with the request"
  */
 
+function getOrderCollumnName(collumnName) {
+  switch (collumnName) {
+    case "firstname":
+      return "v_firstName";
+    case "lastname":
+      return "v_lastName";
+    case "email":
+      return "v_email";
+    case "title":
+      return "v_title";
+    default:
+      return "i_id";
+  }
+}
+
 module.exports.userGetAll = userGetAll;
 async function userGetAll(data) {
   const userIdAgent = data.userId;
@@ -133,6 +148,8 @@ async function userGetAll(data) {
   }
   const inputText = data.query.inputValue ? data.query.inputValue : "";
   const page = data.query.page ? data.query.page : 0;
+  const orderCollumn = getOrderCollumnName(data.query.collumnName);
+  const order = data.query.order === "false" ? "DESC" : "ASC";
   const querySelect = `SELECT i_id AS id,
                 v_firstName AS firstName,
                 v_lastName AS lastName,
@@ -149,6 +166,7 @@ async function userGetAll(data) {
                     OR v_lastName LIKE CONCAT("%", ?, "%")
                     OR v_email LIKE CONCAT("%", ?, "%")
                     )
+                ORDER BY ${orderCollumn} ${order}
                 ${data.query.all ? "" : "LIMIT ? OFFSET ?"};`;
   const dbRes = await data.app.executeQuery(data.app.db, querySelect, [inputText, inputText, inputText, inputText, inputText, maxUser, maxUser * page]);
   if (dbRes[0]) {

@@ -186,6 +186,24 @@ async function getTicketAllFromUser(data) {
  *        description: "Internal error with the request"
  */
 
+function getOrderCollumnName(collumnName) {
+  switch (collumnName) {
+    case "name":
+      return "u.v_firstName";
+    case "createAt":
+      return "pt.dt_creationdate";
+    case "priority":
+      return "tp.v_name";
+    case "type":
+      return "tpt.v_name";
+    case "status":
+      return "stat.v_name";
+
+    default:
+      return "pt.i_id";
+  }
+}
+
 module.exports.getTicketAll = getTicketAll;
 async function getTicketAll(data) {
   const userIdAgent = data.userId;
@@ -205,6 +223,8 @@ async function getTicketAll(data) {
   const inputText = data.query.inputValue ? data.query.inputValue : "";
   const page = data.query.page ? data.query.page : 0;
   const selectOpenOnly = data.query.selectOpenOnly ? data.query.selectOpenOnly : false;
+  const orderCollumn = getOrderCollumnName(data.query.collumnName);
+  const order = data.query.order === "false" ? "DESC" : "ASC";
   const query = `SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
              tpt.v_name AS 'projectType', u.v_title AS 'title' , pt.i_groupNumber AS 'groupNumber' ,
              pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate',
@@ -228,7 +248,7 @@ async function getTicketAll(data) {
                 OR stat.v_name LIKE CONCAT("%", ?, "%")
                 OR tp.v_name LIKE CONCAT("%", ?, "%")
                 )
-             ORDER BY pt.i_id ASC
+             ORDER BY ${orderCollumn} ${order}
              ${data.query.all ? "" : "LIMIT ? OFFSET ?"};`;
 
   const dbRes = await data.app.executeQuery(data.app.db, query, [
