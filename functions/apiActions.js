@@ -87,6 +87,16 @@ module.exports.sendResponse = async (req, res, data) => {
     case "code":
       res.sendStatus(data.code);
       break;
+    case "file":
+      res.sendFile(data.name, {
+        root: __dirname + `/../${data.root ? data.root : "data/files/"}`,
+        dotfiles: "deny",
+        headers: {
+          "x-timestamp": Date.now(),
+          "x-sent": true,
+        },
+      });
+      break;
     case "download":
       res.download(data.path, data.fileName);
       break;
