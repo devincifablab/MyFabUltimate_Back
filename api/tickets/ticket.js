@@ -389,6 +389,7 @@ async function getTicketById(data) {
     }
   }
   const querySelect = `SELECT pt.i_id AS 'id', pt.i_idUser AS 'idUser',CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
+             u.v_firstName AS 'userFirstName', u.v_lastName AS 'userLastName',
              tpt.v_name AS 'projectType', pt.i_projecttype AS 'idProjectType', u.v_title AS 'title' , u.v_email AS 'email' , pt.i_groupNumber AS 'groupNumber' ,
              pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate',
              stat.v_name AS 'statusName', stat.b_isCancel AS 'isCancel', stat.v_color AS 'statusColor',
