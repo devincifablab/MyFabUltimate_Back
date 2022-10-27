@@ -782,6 +782,7 @@ async function deleteTicketWithId(data) {
   }
 
   data.app.io.emit("event-reload-tickets"); // reload ticket menu on client
+  data.app.io.to(`ticket-${data.params.id}`).emit("reload-ticket");
 
   //return response
   return {
@@ -896,6 +897,7 @@ async function putTicketNewProjectType(data) {
   }
 
   data.app.io.emit("event-reload-tickets"); // reload ticket menu on client
+  data.app.io.to(`ticket-${data.params.id}`).emit("reload-ticket");
 
   return {
     type: "code",
@@ -1001,6 +1003,7 @@ async function putTicketNewStatus(data) {
   }
 
   data.app.io.emit("event-reload-tickets"); // reload ticket menu on client
+  data.app.io.to(`ticket-${idTicket}`).emit("reload-ticket");
 
   return {
     type: "code",
@@ -1119,6 +1122,7 @@ async function putTicketCancelStatus(data) {
   }
 
   data.app.io.emit("event-reload-tickets"); // reload ticket menu on client
+  data.app.io.to(`ticket-${idTicket}`).emit("reload-ticket");
 
   return {
     type: "code",

@@ -60,62 +60,62 @@
 
 module.exports.getTicketMessage = getTicketMessage;
 async function getTicketMessage(data) {
-    const userIdAgent = data.userId;
-    if (!userIdAgent) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
-    // The body does not have all the necessary field
-    if (!data.params || !data.params.id || isNaN(data.params.id)) {
-        return {
-            type: "code",
-            code: 400
-        }
-    }
-    const querySelectTicket = `SELECT i_idUser AS 'id'
+  const userIdAgent = data.userId;
+  if (!userIdAgent) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
+  // The body does not have all the necessary field
+  if (!data.params || !data.params.id || isNaN(data.params.id)) {
+    return {
+      type: "code",
+      code: 400,
+    };
+  }
+  const querySelectTicket = `SELECT i_idUser AS 'id'
                         FROM printstickets
                         WHERE i_id = ?`;
-    const resGetUserTicket = await data.app.executeQuery(data.app.db, querySelectTicket, [data.params.id]);
-    if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
-        console.log(resGetUserTicket[0]);
-        return {
-            type: "code",
-            code: 500
-        }
+  const resGetUserTicket = await data.app.executeQuery(data.app.db, querySelectTicket, [data.params.id]);
+  if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
+    console.log(resGetUserTicket[0]);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
+  const idTicketUser = resGetUserTicket[1][0].id;
+  if (idTicketUser != userIdAgent) {
+    const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
+    if (!authViewResult) {
+      return {
+        type: "code",
+        code: 403,
+      };
     }
-    const idTicketUser = resGetUserTicket[1][0].id;
-    if (idTicketUser != userIdAgent) {
-        const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
-        if (!authViewResult) {
-            return {
-                type: "code",
-                code: 403
-            }
-        }
-    }
-    const querySelectTicketMessage = `SELECT CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
+  }
+  const querySelectTicketMessage = `SELECT CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
                                     tm.v_content AS 'content',
                                     tm.dt_creationDate AS 'creationDate'
                                     FROM ticketmessages AS tm
                                     INNER JOIN users AS u
                                     ON tm.i_idUser = u.i_id
                                     WHERE i_idTicket = ?
-                                    ORDER BY creationDate DESC`;
-    const dbRes = await data.app.executeQuery(data.app.db, querySelectTicketMessage, [data.params.id]);
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
+                                    ORDER BY creationDate ASC`;
+  const dbRes = await data.app.executeQuery(data.app.db, querySelectTicketMessage, [data.params.id]);
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
     return {
-        type: "json",
-        code: 200,
-        json: dbRes[1]
-    }
+      type: "code",
+      code: 500,
+    };
+  }
+  return {
+    type: "json",
+    code: 200,
+    json: dbRes[1],
+  };
 }
 
 /**
@@ -161,90 +161,88 @@ async function getTicketMessage(data) {
  *        description: "Internal error with the request"
  */
 
-
 module.exports.postTicketMessage = postTicketMessage;
 async function postTicketMessage(data) {
-    // The body does not have all the necessary field
-    if (!data.params || !data.params.id || isNaN(data.params.id) || !data.body || !data.body.content) {
-        return {
-            type: "code",
-            code: 400
-        }
-    }
-    // if the user is not allowed
-    const userIdAgent = data.userId;
-    if (!userIdAgent) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
-    const querySelect = `SELECT i_idUser AS 'id'
+  // The body does not have all the necessary field
+  if (!data.params || !data.params.id || isNaN(data.params.id) || !data.body || !data.body.content) {
+    return {
+      type: "code",
+      code: 400,
+    };
+  }
+  // if the user is not allowed
+  const userIdAgent = data.userId;
+  if (!userIdAgent) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
+  const querySelect = `SELECT i_idUser AS 'id'
                     FROM printstickets
                     WHERE i_id = ?`;
-    const resGetUserTicket = await data.app.executeQuery(data.app.db, querySelect, [data.params.id]);
-    if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
-        console.log(resGetUserTicket[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
-    const idTicketUser = resGetUserTicket[1][0].id;
-    if (idTicketUser != userIdAgent) {
-        const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
-        if (!authViewResult) {
-            return {
-                type: "code",
-                code: 403
-            }
-        }
-    }
-
-    const queryInsert = `INSERT INTO ticketmessages (i_idUser, i_idTicket, v_content)
-                        VALUES (?, ?, ?)`;
-    const dbRes = await data.app.executeQuery(data.app.db, queryInsert, [userIdAgent, data.params.id, data.body.content]);
-    if (dbRes[0]) {
-        console.log(dbRes[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
-    
-    //Update bot channels
-    require("../..//functions/commandForBot").postTicket(data.params.id);
-
+  const resGetUserTicket = await data.app.executeQuery(data.app.db, querySelect, [data.params.id]);
+  if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
+    console.log(resGetUserTicket[0]);
     return {
+      type: "code",
+      code: 500,
+    };
+  }
+  const idTicketUser = resGetUserTicket[1][0].id;
+  if (idTicketUser != userIdAgent) {
+    const authViewResult = await data.userAuthorization.validateUserAuth(data.app, userIdAgent, "myFabAgent");
+    if (!authViewResult) {
+      return {
         type: "code",
-        code: 200
+        code: 403,
+      };
     }
-}
+  }
 
+  const queryInsert = `INSERT INTO ticketmessages (i_idUser, i_idTicket, v_content)
+                        VALUES (?, ?, ?)`;
+  const dbRes = await data.app.executeQuery(data.app.db, queryInsert, [userIdAgent, data.params.id, data.body.content]);
+  if (dbRes[0]) {
+    console.log(dbRes[0]);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
+
+  //Update bot channels
+  data.app.io.to(`ticket-${data.params.id}`).emit("reload-ticket");
+
+  return {
+    type: "code",
+    code: 200,
+  };
+}
 
 module.exports.startApi = startApi;
 async function startApi(app) {
-    app.get("/api/ticket/:id/message/", async function (req, res) {
-        try {
-            const data = await require("../../functions/apiActions").prepareData(app, req, res);
-            const result = await getTicketMessage(data);
-            await require("../../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/ticket/:id/message/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/ticket/:id/message/", async function (req, res) {
+    try {
+      const data = await require("../../functions/apiActions").prepareData(app, req, res);
+      const result = await getTicketMessage(data);
+      await require("../../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/ticket/:id/message/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.post("/api/ticket/:id/message/", async function (req, res) {
-        try {
-            const data = await require("../../functions/apiActions").prepareData(app, req, res);
-            const result = await postTicketMessage(data);
-            await require("../../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: POST /api/ticket/:id/message/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.post("/api/ticket/:id/message/", async function (req, res) {
+    try {
+      const data = await require("../../functions/apiActions").prepareData(app, req, res);
+      const result = await postTicketMessage(data);
+      await require("../../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: POST /api/ticket/:id/message/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 }

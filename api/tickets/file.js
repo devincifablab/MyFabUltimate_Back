@@ -492,7 +492,7 @@ async function ticketFilePut(data) {
   }
 
   //Update bot channels
-  require("../../functions/commandForBot").postTicket(idTicket);
+  data.app.io.to(`ticket-${idTicket}`).emit("reload-ticket");
 
   //return response
   return {

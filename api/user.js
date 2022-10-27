@@ -470,6 +470,7 @@ async function userDeleteById(data) {
     };
   }
   data.app.io.emit("event-reload-users"); // reload users menu on client
+  data.app.io.to(`user-${idUserTarget}`).emit("reload-user");
   return {
     type: "code",
     code: 200,
@@ -524,6 +525,7 @@ async function userRenamePut(data) {
     }
   }
   data.app.io.emit("event-reload-users"); // reload users menu on client
+  data.app.io.to(`user-${idUserTarget}`).emit("reload-user");
 
   return {
     type: "code",
