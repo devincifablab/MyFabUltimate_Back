@@ -1,8 +1,8 @@
 module.exports.cookieTestSpecialCode = cookieTestSpecialCode;
 async function cookieTestSpecialCode(data) {
   const specialCodeUser = data.specialcode;
-  const specialCode = await data.userAuthorization.getSpecialCode();
-  if (!specialCode || !specialCodeUser || specialCodeUser !== specialCode) {
+  const resCheckCode = await data.userAuthorization.checkSpecialCode(specialCodeUser);
+  if (!resCheckCode) {
     return {
       type: "code",
       code: 404,
@@ -17,8 +17,8 @@ async function cookieTestSpecialCode(data) {
 module.exports.cookieDeleteAll = cookieDeleteAll;
 async function cookieDeleteAll(data) {
   const specialCodeUser = data.specialcode;
-  const specialCode = await data.userAuthorization.getSpecialCode();
-  if (!specialCode || !specialCodeUser || specialCodeUser !== specialCode) {
+  const resCheckCode = await data.userAuthorization.checkSpecialCode(specialCodeUser);
+  if (!resCheckCode) {
     return {
       type: "code",
       code: 404,

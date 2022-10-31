@@ -480,9 +480,9 @@ async function userDeleteById(data) {
 module.exports.userRenamePut = userRenamePut;
 async function userRenamePut(data) {
   const idUserTarget = data.params ? data.params.id : undefined;
-  const specialCode = await require("../functions/userAuthorization").getSpecialCode();
+  const resCheckCode = await data.userAuthorization.checkSpecialCode(data.specialcode);
   // Id is not a number or user try to delete himself
-  if (isNaN(idUserTarget) || !specialCode || specialCode !== data.specialcode || !data.body) {
+  if (isNaN(idUserTarget) || !resCheckCode || !data.body) {
     return {
       type: "code",
       code: 404,

@@ -2,8 +2,8 @@ const fs = require("fs");
 
 module.exports.changeOpenMyFab = changeOpenMyFab;
 async function changeOpenMyFab(data) {
-  const specialCode = await require("../../functions/userAuthorization").getSpecialCode();
-  if (!specialCode || !data.body || typeof data.body.status !== "boolean" || specialCode !== data.specialcode) {
+  const resCheckCode = await data.userAuthorization.checkSpecialCode(data.specialcode);
+  if (!resCheckCode || !data.body || typeof data.body.status !== "boolean") {
     return {
       type: "code",
       code: 404,
