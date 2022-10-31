@@ -110,7 +110,8 @@ async function getTicketAllFromUser(data) {
   }
 
   const page = data.query.page ? data.query.page : 0;
-  const query = `SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
+  const query = `SELECT pt.i_id AS 'id',
+             CONCAT(u.v_firstName, (CASE WHEN u.v_lastName != "" THEN CONCAT(' ', LEFT(u.v_lastName, 1), '.') ELSE "" END)) AS 'userName',
              tpt.v_name AS 'projectType', u.v_title AS 'title' ,
              pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate',
              stat.v_name AS 'statusName', stat.v_color AS 'statusColor', tp.v_name AS 'priorityName', tp.v_color AS 'priorityColor' 
@@ -225,7 +226,8 @@ async function getTicketAll(data) {
   const selectOpenOnly = data.query.selectOpenOnly ? data.query.selectOpenOnly : false;
   const orderCollumn = getOrderCollumnName(data.query.collumnName);
   const order = data.query.order === "false" ? "DESC" : "ASC";
-  const query = `SELECT pt.i_id AS 'id', CONCAT(u.v_firstName, ' ', LEFT(u.v_lastName, 1), '.') AS 'userName',
+  const query = `SELECT pt.i_id AS 'id',
+             CONCAT(u.v_firstName, (CASE WHEN u.v_lastName != "" THEN CONCAT(' ', LEFT(u.v_lastName, 1), '.') ELSE "" END)) AS 'userName',
              tpt.v_name AS 'projectType', u.v_title AS 'title' , pt.i_groupNumber AS 'groupNumber' ,
              pt.dt_creationdate AS 'creationDate', pt.dt_modificationdate AS 'modificationDate',
              stat.v_name AS 'statusName', stat.v_color AS 'statusColor',

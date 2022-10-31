@@ -58,7 +58,7 @@ async function addRootUser() {
   const queryInsertSystemUser = `INSERT INTO users
                             (v_firstName, v_lastName, v_email, v_password, dt_creationdate, v_language, dt_ruleSignature, b_deleted, b_visible, b_mailValidated, b_isMicrosoft, v_title)
                             VALUES
-                            ('Système', 'Myfab', 'system@system.com', ?, current_timestamp(), 'fr', current_timestamp(), '0', '0', '1', '0', 'Système');`;
+                            ('Système', '', 'system@system.com', ?, current_timestamp(), 'fr', current_timestamp(), '0', '0', '1', '0', 'Système');`;
   const resInsertSystemUser = await executeQuery(db, queryInsertSystemUser, [systemPassword]);
   await require("./functions/dataBase/createConnection").close(db);
   return;
