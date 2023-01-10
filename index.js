@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
 const expressHeader = require("express-header");
+const session = require("express-session");
 const fs = require("fs");
 const app = express();
 const config = require(__dirname + "/config.json");
@@ -15,6 +16,14 @@ app.use(
   })
 );
 app.use(bodyParser.json());
+app.use(
+  session({
+    secret: config.specialTocken,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: true, maxAge: 1000 * 60 * 60 },
+  })
+);
 app.use(express.static("public"));
 app.use(
   fileUpload({
