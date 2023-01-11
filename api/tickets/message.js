@@ -198,6 +198,16 @@ async function postTicketMessage(data) {
         code: 403,
       };
     }
+  } else {
+    const querySetNormalStatus = `UPDATE printstickets SET i_status = (SELECT i_id FROM gd_status WHERE v_name = 'Ouvert') WHERE i_id = ?;`;
+    const resSetNormalStatus = await data.app.executeQuery(data.app.db, querySetNormalStatus, [data.params.id]);
+    if (resSetNormalStatus[0]) {
+      console.log(resSetNormalStatus[0]);
+      return {
+        type: "code",
+        code: 500,
+      };
+    }
   }
 
   const queryInsert = `INSERT INTO ticketmessages (i_idUser, i_idTicket, v_content)
