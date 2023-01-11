@@ -1133,8 +1133,82 @@ async function putTicketCancelStatus(data) {
   };
 }
 
+/**
+ * @swagger
+ * /ticket/highDemand/:
+ *   get:
+ *     summary: Get if there is a high demand.
+ *     tags: [Ticket]
+ *     parameters:
+ *     - name: dvflCookie
+ *       in: header
+ *       description: Cookie of the user making the request
+ *       required: true
+ *       type: string
+ *     responses:
+ *       "200":
+ *         description: "Get all ticlets data from a user"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: "array"
+ *               items:
+ *                 $ref: '#/components/schemas/Ticket'
+ *       401:
+ *        description: "The user is unauthenticated"
+ *       500:
+ *        description: "Internal error with the request"
+ */
+
+module.exports.getHighDemand = getHighDemand;
+async function getHighDemand(data) {
+  //The user is unauthenticated
+  const userIdAgent = data.userId;
+  if (!userIdAgent) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
+
+  const queryGet = `SELECT COUNT(*) AS 'count'
+              FROM printstickets AS pt
+              LEFT OUTER JOIN gd_status AS stat ON pt.i_status = stat.i_id
+              WHERE pt.b_isDeleted = 0
+              AND stat.b_isOpen = 1
+              AND pt.dt_creationdate >= DATE_ADD(CURDATE(), INTERVAL -1 MONTH)
+              AND pt.dt_creationdate < CURDATE();`;
+
+  const resGet = await data.app.executeQuery(data.app.db, queryGet, []);
+  if (resGet[0]) {
+    console.log(resGet[0]);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
+
+  return {
+    type: "json",
+    code: 200,
+    json: { result: resGet[1][0].count >= 5 },
+  };
+}
+
 module.exports.startApi = startApi;
 async function startApi(app) {
+  app.get("/api/ticket/highDemand/", async function (req, res) {
+    try {
+      const data = await require("../../functions/apiActions").prepareData(app, req, res);
+      const result = await getHighDemand(data);
+      await require("../../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/ticket/highDemand/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
+
   app.get("/api/ticket/me/", async function (req, res) {
     try {
       const data = await require("../../functions/apiActions").prepareData(app, req, res);
