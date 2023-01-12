@@ -29,8 +29,8 @@ var samlStrategy = new saml.Strategy(
     // URL that goes from the Identity Provider -> Service Provider
     callbackUrl: "/api/user/login/adfs/callback",
     // URL that goes from the Service Provider -> Identity Provider
-    entryPoint: "http://localhost:8080/simplesaml/saml2/idp/SSOService.php",
-    issuer: "http://app.example.com",
+    entryPoint: config.adsf.entryPoint,
+    issuer: config.adsf.issuer,
     cert: fs.readFileSync(__dirname + "/../../data/cert", "utf8"), // cert must be provided
   },
   function (profile, done) {
