@@ -92,15 +92,21 @@ async function postLoginADFS(data) {
     };
   }
 
-  const user = pendingUsers[data.body.token].user;
+  if (Date.now() - pendingUsers[data.body.token].timestamp > 500) {
+    return {
+      type: "code",
+      code: 404,
+    };
+  }
 
-  const firstName = "test";
-  const lastName = "test";
-  const email = user.email;
-  const title = "test title";
+  const firstName = pendingUsers[data.body.token].firstName;
+  const lastName = pendingUsers[data.body.token].lastName;
+  const email = pendingUsers[data.body.token].email;
+  const title = pendingUsers[data.body.token].title;
   if (!firstName || !lastName || !email || !title) {
-    console.log("Error with adfs get user info");
-    console.log(pendingUsers[data.body.token]);
+    console.log("Error with adfs get user info"); //DELETE THIS
+    console.log(pendingUsers[data.body.token]); //DELETE THIS
+    await fs.writeFileSync(__dirname + "/../../data/samlResult.json", JSON.stringify(pendingUsers[data.body.token])); //DELETE THIS
     return {
       type: "code",
       code: 400,
@@ -201,6 +207,7 @@ async function startApi(app) {
   app.post("/api/user/login/adfs/callback", passport.authenticate("saml", { failureRedirect: "/login/fail" }), function (req, res) {
     const id = makeid(20);
     pendingUsers[id] = req.session.passport;
+    pendingUsers[id].timestamp = Date.now();
     res.redirect(`${config.siteRoot}/auth/adfs/${id}`);
   });
 }

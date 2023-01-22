@@ -95,12 +95,12 @@ if (!fs.existsSync(__dirname + "/data/files")) fs.mkdirSync(__dirname + "/data/f
 if (!fs.existsSync(__dirname + "/data/files/image")) fs.mkdirSync(__dirname + "/data/files/image");
 if (!fs.existsSync(__dirname + "/data/files/stl")) fs.mkdirSync(__dirname + "/data/files/stl");
 if (!fs.existsSync(__dirname + "/data/serviceData.json")) fs.writeFileSync(__dirname + "/data/serviceData.json", JSON.stringify({ myFabOpen: true }));
+if (fs.existsSync(__dirname + "/data/samlResult.json")) fs.unlinkSync(__dirname + "/data/samlResult.json"); //DELETE THIS
 
 async function start() {
   app.db = await require("./functions/dataBase/createConnection").open();
   app.executeQuery = require("./functions/dataBase/executeQuery").run;
 
-  //app.bot = require("./discordBot/index").run();
   const port = config.port;
   server.listen(port);
   console.log();
