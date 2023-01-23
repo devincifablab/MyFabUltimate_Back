@@ -60,13 +60,13 @@ module.exports.checkSpecialCode = async (codeToTest) => {
   }
   const nowDate = new Date();
   const tockenNow = sha256(
-    config.specialTocken + (nowDate.getMonth() + 1) + Math.trunc(new Date().getSeconds() / 10) + nowDate.getFullYear() + nowDate.getMinutes() + nowDate.getHours()
+    config.specialTocken + (nowDate.getMonth() + 1) + Math.trunc(nowDate.getSeconds() / 10) + nowDate.getFullYear() + nowDate.getMinutes() + nowDate.getHours()
   );
   if (tockenNow === codeToTest) return true;
 
-  nowDate.setSeconds(nowDate.getSeconds() - 30);
+  nowDate.setSeconds(nowDate.getSeconds() - 10);
   const tockenPrev = sha256(
-    config.specialTocken + (nowDate.getMonth() + 1) + Math.trunc(new Date().getSeconds() / 10) + nowDate.getFullYear() + nowDate.getMinutes() + nowDate.getHours()
+    config.specialTocken + (nowDate.getMonth() + 1) + Math.trunc(nowDate.getSeconds() / 10) + nowDate.getFullYear() + nowDate.getMinutes() + nowDate.getHours()
   );
   if (tockenPrev === codeToTest) return true;
   return false;

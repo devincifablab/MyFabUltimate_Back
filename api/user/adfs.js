@@ -92,7 +92,8 @@ async function postLoginADFS(data) {
     };
   }
 
-  if (Date.now() - pendingUsers[data.body.token].timestamp > 500) {
+  if (Date.now() - pendingUsers[data.body.token].timestamp > 15 * 1000) {
+    // Each user have 15s to switch from back end to front end (this is automatic and take ~1s)
     return {
       type: "code",
       code: 404,
