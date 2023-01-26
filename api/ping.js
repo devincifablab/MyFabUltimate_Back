@@ -27,13 +27,13 @@
 
 module.exports.pingGet = pingGet;
 async function pingGet(data) {
-    return {
-        type: "json",
-        code: 200,
-        json: {
-            result: "pong"
-        }
-    }
+  return {
+    type: "json",
+    code: 200,
+    json: {
+      result: "pong",
+    },
+  };
 }
 
 /**
@@ -58,13 +58,13 @@ async function pingGet(data) {
 
 module.exports.pingPost = pingPost;
 async function pingPost(data) {
-    return {
-        type: "json",
-        code: 200,
-        json: {
-            result: "pong"
-        }
-    }
+  return {
+    type: "json",
+    code: 200,
+    json: {
+      result: "pong",
+    },
+  };
 }
 
 /**
@@ -89,13 +89,13 @@ async function pingPost(data) {
 
 module.exports.pingPut = pingPut;
 async function pingPut(data) {
-    return {
-        type: "json",
-        code: 200,
-        json: {
-            result: "pong"
-        }
-    }
+  return {
+    type: "json",
+    code: 200,
+    json: {
+      result: "pong",
+    },
+  };
 }
 
 /**
@@ -120,63 +120,62 @@ async function pingPut(data) {
 
 module.exports.pingDelete = pingDelete;
 async function pingDelete(data) {
-    return {
-        type: "json",
-        code: 200,
-        json: {
-            result: "pong"
-        }
-    }
+  return {
+    type: "json",
+    code: 200,
+    json: {
+      result: "pong",
+    },
+  };
 }
-
 
 module.exports.startApi = startApi;
 async function startApi(app) {
-    app.get("/api/ping/", async function (req, res) {
-        const data = await require("../functions/apiActions").prepareData(app, req, res);
-        try {
-            const result = await pingGet(data);
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/ping/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/ping/", async function (req, res) {
+    const data = await require("../functions/apiActions").prepareData(app, req, res);
+    try {
+      const result = await pingGet(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/ping/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.post("/api/ping/", async function (req, res) {
-        const data = await require("../functions/apiActions").prepareData(app, req, res);
-        try {
-            const result = await pingPost(data);
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: POST /api/ping/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.post("/api/ping/", async function (req, res) {
+    const data = await require("../functions/apiActions").prepareData(app, req, res);
+    try {
+      const result = await pingPost(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: POST /api/ping/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.put("/api/ping/", async function (req, res) {
-        const data = await require("../functions/apiActions").prepareData(app, req, res);
-        try {
-            const result = await pingDelete(data);
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: POST /api/ping/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.put("/api/ping/", async function (req, res) {
+    const data = await require("../functions/apiActions").prepareData(app, req, res);
+    try {
+      const result = await pingDelete(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: POST /api/ping/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 
-    app.delete("/api/ping/", async function (req, res) {
-        const data = await require("../functions/apiActions").prepareData(app, req, res);
-        try {
-            const result = await pingDelete(data);
-            await require("../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: POST /api/ping/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.delete("/api/ping/", async function (req, res) {
+    const data = await require("../functions/apiActions").prepareData(app, req, res);
+    try {
+      const result = await pingDelete(data);
+      await require("../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: POST /api/ping/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 }
