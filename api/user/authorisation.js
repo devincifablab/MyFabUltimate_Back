@@ -23,34 +23,33 @@
 
 module.exports.getAuth = getAuth;
 async function getAuth(data) {
-    const userIdAgent = data.userId;
-    // unauthenticated user
-    if (!userIdAgent) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
-    const result = await data.userAuthorization.getUserAuth(data.app, userIdAgent);
+  const userIdAgent = data.userId;
+  // unauthenticated user
+  if (!userIdAgent) {
     return {
-        type: "json",
-        code: 200,
-        json: result
-    }
+      type: "code",
+      code: 401,
+    };
+  }
+  const result = await data.userAuthorization.getUserAuth(data.app, userIdAgent);
+  return {
+    type: "json",
+    code: 200,
+    json: result,
+  };
 }
-
 
 module.exports.startApi = startApi;
 async function startApi(app) {
-    app.get("/api/user/authorization/", async function (req, res) {
-        try {
-            const data = await require("../../functions/apiActions").prepareData(app, req, res);
-            const result = await getAuth(data);
-            await require("../../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/user/authorization/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.get("/api/user/authorization/", async function (req, res) {
+    try {
+      const data = await require("../../functions/apiActions").prepareData(app, req, res);
+      const result = await getAuth(data);
+      await require("../../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/user/authorization/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 }

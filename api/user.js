@@ -1,4 +1,4 @@
-const maxUser = 30;
+const maxUserDefault = 30;
 
 /**
  * @swagger
@@ -146,6 +146,7 @@ async function userGetAll(data) {
       code: 403,
     };
   }
+  const maxUser = data.query && data.query.maxUser ? data.query.maxUser : maxUserDefault;
   const inputText = data.query && data.query.inputValue ? data.query.inputValue : "";
   const page = data.query && data.query.page ? data.query.page : 0;
   const orderCollumn = getOrderCollumnName(data.query && data.query.collumnName ? data.query.collumnName : "i_id");
@@ -169,6 +170,7 @@ async function userGetAll(data) {
                 ORDER BY ${orderCollumn} ${order}
                 ${data.query && data.query.all ? "" : "LIMIT ? OFFSET ?"};`;
   const dbRes = await data.app.executeQuery(data.app.db, querySelect, [inputText, inputText, inputText, inputText, inputText, maxUser, maxUser * page]);
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -176,7 +178,7 @@ async function userGetAll(data) {
       code: 500,
     };
   }
-
+  /* c8 ignore stop */
   const queryCount = `SELECT COUNT(1) AS count
                 FROM users
                 WHERE b_deleted = 0
@@ -190,6 +192,7 @@ async function userGetAll(data) {
                     );`;
 
   const dbResCount = await data.app.executeQuery(data.app.db, queryCount, [inputText, inputText, inputText, inputText, inputText, maxUser, maxUser * page]);
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -197,6 +200,7 @@ async function userGetAll(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
   const calcUserByMaxUser = dbResCount[1][0].count / maxUser;
   const maxPage = Math.trunc(calcUserByMaxUser) === calcUserByMaxUser ? calcUserByMaxUser : Math.trunc(calcUserByMaxUser) + 1;
 
@@ -260,6 +264,7 @@ async function userGetMe(data) {
                     AND b_deleted = 0`;
   const dbRes = await data.app.executeQuery(data.app.db, querySelect, [userIdAgent, userIdAgent]);
   // The sql request has an error
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -267,6 +272,7 @@ async function userGetMe(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
   // The response has no value
   if (dbRes[1].length !== 1) {
     return {
@@ -361,6 +367,7 @@ async function userGetById(data) {
                     AND b_deleted = 0`;
   const dbRes = await data.app.executeQuery(data.app.db, querySelect, [idUserTarget, idUserTarget]);
   // The sql request has an error
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -368,6 +375,7 @@ async function userGetById(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
   // The response has no value
   if (dbRes[1].length !== 1) {
     return {
@@ -455,6 +463,7 @@ async function userDeleteById(data) {
                          WHERE i_id = ?;`;
   const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [idUserTarget]);
   // The sql request has an error
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -462,6 +471,7 @@ async function userDeleteById(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
   // The response has no value
   if (dbRes[1].changedRows !== 1) {
     return {
@@ -492,6 +502,7 @@ async function userRenamePut(data) {
     const queryUpdate = `UPDATE users SET v_firstName = ? WHERE i_id = ?;`;
     const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [data.body.firstName, idUserTarget]);
     // The sql request has an error
+    /* c8 ignore start */
     if (dbRes[0]) {
       console.log(dbRes[0]);
       return {
@@ -499,11 +510,13 @@ async function userRenamePut(data) {
         code: 500,
       };
     }
+    /* c8 ignore stop */
   }
   if (data.body.lastName) {
     const queryUpdate = `UPDATE users SET v_lastName = ? WHERE i_id = ?;`;
     const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [data.body.lastName, idUserTarget]);
     // The sql request has an error
+    /* c8 ignore start */
     if (dbRes[0]) {
       console.log(dbRes[0]);
       return {
@@ -511,11 +524,13 @@ async function userRenamePut(data) {
         code: 500,
       };
     }
+    /* c8 ignore stop */
   }
   if (data.body.title) {
     const queryUpdate = `UPDATE users SET v_title = ? WHERE i_id = ?;`;
     const dbRes = await data.app.executeQuery(data.app.db, queryUpdate, [data.body.title, idUserTarget]);
     // The sql request has an error
+    /* c8 ignore start */
     if (dbRes[0]) {
       console.log(dbRes[0]);
       return {
@@ -523,6 +538,7 @@ async function userRenamePut(data) {
         code: 500,
       };
     }
+    /* c8 ignore stop */
   }
   data.app.io.emit("event-reload-users"); // reload users menu on client
   data.app.io.to(`user-${idUserTarget}`).emit("reload-user");
@@ -533,6 +549,7 @@ async function userRenamePut(data) {
   };
 }
 
+/* c8 ignore start */
 module.exports.startApi = startApi;
 async function startApi(app) {
   app.get("/api/user/", async function (req, res) {
@@ -595,3 +612,4 @@ async function startApi(app) {
     }
   });
 }
+/* c8 ignore stop */

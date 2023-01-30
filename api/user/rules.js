@@ -21,51 +21,51 @@
 
 module.exports.putValidateRules = putValidateRules;
 async function putValidateRules(data) {
-    const userId = data.userId;
-    if (!userId) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
+  const userId = data.userId;
+  if (!userId) {
+    return {
+      type: "code",
+      code: 401,
+    };
+  }
 
-    const queryUpdate = `UPDATE users 
+  const queryUpdate = `UPDATE users 
                         SET dt_ruleSignature = CURRENT_TIMESTAMP()
                         WHERE i_id = ?
                         AND dt_ruleSignature IS NULL;`;
-    const resUpdate = await data.app.executeQuery(data.app.db, queryUpdate, [userId]);
-    // Error with the sql request
-    if (resUpdate[0]) {
-        console.log(resUpdate[0]);
-        return {
-            type: "code",
-            code: 500
-        }
-    }
-    if (resUpdate[1].affectedRows) {
-        return {
-            type: "code",
-            code: 200
-        }
-    } else {
-        return {
-            type: "code",
-            code: 204
-        }
-    }
+  const resUpdate = await data.app.executeQuery(data.app.db, queryUpdate, [userId]);
+  // Error with the sql request
+  if (resUpdate[0]) {
+    console.log(resUpdate[0]);
+    return {
+      type: "code",
+      code: 500,
+    };
+  }
+  if (resUpdate[1].affectedRows) {
+    return {
+      type: "code",
+      code: 200,
+    };
+  } else {
+    return {
+      type: "code",
+      code: 204,
+    };
+  }
 }
 
 module.exports.startApi = startApi;
 async function startApi(app) {
-    app.put("/api/user/validateRules/", async function (req, res) {
-        try {
-            const data = await require("../../functions/apiActions").prepareData(app, req, res);
-            const result = await putValidateRules(data);
-            await require("../../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: GET /api/role/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.put("/api/user/validateRules/", async function (req, res) {
+    try {
+      const data = await require("../../functions/apiActions").prepareData(app, req, res);
+      const result = await putValidateRules(data);
+      await require("../../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: GET /api/role/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 }

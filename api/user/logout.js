@@ -1,6 +1,5 @@
 const sha256 = require("sha256");
 
-
 /**
  * @swagger
  * /user/logout/:
@@ -24,33 +23,32 @@ const sha256 = require("sha256");
 
 module.exports.deleteLogout = deleteLogout;
 async function deleteLogout(data) {
-    const userIdAgent = data.userId;
-    if (!userIdAgent) {
-        return {
-            type: "code",
-            code: 401
-        }
-    }
-    delete data.app.cookiesList[data.dvflcookie];
+  const userIdAgent = data.userId;
+  if (!userIdAgent) {
     return {
-        type: "code",
-        code: 200
-    }
+      type: "code",
+      code: 401,
+    };
+  }
+  delete data.app.cookiesList[data.dvflcookie];
+  return {
+    type: "code",
+    code: 200,
+  };
 }
-
 
 module.exports.startApi = startApi;
 async function startApi(app) {
-    app.delete("/api/user/logout/", async function (req, res) {
-        try {
-            const data = await require("../../functions/apiActions").prepareData(app, req, res);
-            data.dvflcookie = req.headers.dvflcookie;
-            const result = await deleteLogout(data);
-            await require("../../functions/apiActions").sendResponse(req, res, result);
-        } catch (error) {
-            console.log("ERROR: DELETE /api/user/logout/");
-            console.log(error);
-            res.sendStatus(500);
-        }
-    })
+  app.delete("/api/user/logout/", async function (req, res) {
+    try {
+      const data = await require("../../functions/apiActions").prepareData(app, req, res);
+      data.dvflcookie = req.headers.dvflcookie;
+      const result = await deleteLogout(data);
+      await require("../../functions/apiActions").sendResponse(req, res, result);
+    } catch (error) {
+      console.log("ERROR: DELETE /api/user/logout/");
+      console.log(error);
+      res.sendStatus(500);
+    }
+  });
 }

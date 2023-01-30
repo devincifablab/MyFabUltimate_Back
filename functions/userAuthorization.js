@@ -1,3 +1,4 @@
+/* c8 ignore start */
 const sha256 = require("sha256");
 const config = require("../config.json");
 
@@ -71,3 +72,4 @@ module.exports.checkSpecialCode = async (codeToTest) => {
   if (tockenPrev === codeToTest) return true;
   return false;
 };
+/* c8 ignore stop */

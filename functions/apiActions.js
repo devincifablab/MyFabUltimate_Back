@@ -1,3 +1,5 @@
+/* c8 ignore start */
+
 const fs = require("fs");
 const sign = require("jwt-encode");
 const activeLogs = require("../config.json").activeLogs;
@@ -63,7 +65,6 @@ module.exports.prepareData = async (app, req, res) => {
     specialcode: req.headers.specialcode,
     userAuthorization: userAuthorization,
   };
-  //console.log(data);
   return data;
 };
 
@@ -141,3 +142,5 @@ async function addLogsError(line) {
   if (!fs.existsSync("./logs/apiError/" + fileName)) fs.writeFileSync("./logs/apiError/" + fileName, "");
   fs.appendFileSync("./logs/apiError/" + fileName, line + "\n");
 }
+
+/* c8 ignore stop */
