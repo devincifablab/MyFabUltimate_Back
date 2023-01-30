@@ -35,6 +35,7 @@ async function putValidateRules(data) {
                         AND dt_ruleSignature IS NULL;`;
   const resUpdate = await data.app.executeQuery(data.app.db, queryUpdate, [userId]);
   // Error with the sql request
+  /* c8 ignore start */
   if (resUpdate[0]) {
     console.log(resUpdate[0]);
     return {
@@ -42,6 +43,7 @@ async function putValidateRules(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
   if (resUpdate[1].affectedRows) {
     return {
       type: "code",
@@ -55,6 +57,7 @@ async function putValidateRules(data) {
   }
 }
 
+/* c8 ignore start */
 module.exports.startApi = startApi;
 async function startApi(app) {
   app.put("/api/user/validateRules/", async function (req, res) {
@@ -69,3 +72,4 @@ async function startApi(app) {
     }
   });
 }
+/* c8 ignore stop */

@@ -39,6 +39,7 @@ async function getAuth(data) {
   };
 }
 
+/* c8 ignore start */
 module.exports.startApi = startApi;
 async function startApi(app) {
   app.get("/api/user/authorization/", async function (req, res) {
@@ -53,3 +54,4 @@ async function startApi(app) {
     }
   });
 }
+/* c8 ignore stop */

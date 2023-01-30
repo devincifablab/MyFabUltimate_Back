@@ -37,6 +37,7 @@ async function deleteLogout(data) {
   };
 }
 
+/* c8 ignore start */
 module.exports.startApi = startApi;
 async function startApi(app) {
   app.delete("/api/user/logout/", async function (req, res) {
@@ -52,3 +53,4 @@ async function startApi(app) {
     }
   });
 }
+/* c8 ignore stop */
