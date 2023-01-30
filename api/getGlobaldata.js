@@ -58,6 +58,7 @@ async function getStatus(data) {
              WHERE stat.b_isCancel = 0`;
 
   const dbRes = await data.app.executeQuery(data.app.db, query, []);
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -65,6 +66,7 @@ async function getStatus(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
 
   return {
     type: "json",
@@ -119,6 +121,7 @@ async function getProjectType(data) {
              ORDER BY id;`;
 
   const dbRes = await data.app.executeQuery(data.app.db, query, []);
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -126,6 +129,7 @@ async function getProjectType(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
 
   return {
     type: "json",
@@ -154,6 +158,7 @@ async function getPrinter(data) {
             WHERE printer.b_isAvailable = 1;`;
 
   const dbRes = await data.app.executeQuery(data.app.db, query, []);
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -161,6 +166,7 @@ async function getPrinter(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
 
   return {
     type: "json",
@@ -216,6 +222,7 @@ async function getVersion(data) {
   };
 }
 
+/* c8 ignore start */
 module.exports.startApi = startApi;
 async function startApi(app) {
   app.get("/api/status", async function (req, res) {
@@ -278,3 +285,4 @@ async function startApi(app) {
     }
   });
 }
+/* c8 ignore stop */

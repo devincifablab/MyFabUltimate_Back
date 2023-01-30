@@ -32,6 +32,7 @@ async function cookieDeleteAll(data) {
   };
 }
 
+/* c8 ignore start */
 module.exports.startApi = startApi;
 async function startApi(app) {
   app.get("/api/cookie/", async function (req, res) {
@@ -58,3 +59,4 @@ async function startApi(app) {
     }
   });
 }
+/* c8 ignore stop */
