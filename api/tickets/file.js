@@ -373,9 +373,6 @@ async function ticketFilePost(data) {
     fs.unlinkSync(idTicket);
   }
 
-  //Update bot channels
-  require("../..//functions/commandForBot").postTicket(idTicket);
-
   //return response
   return {
     type: "code",
