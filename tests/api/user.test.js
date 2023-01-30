@@ -83,6 +83,270 @@ describe("GET /api/user/", () => {
     expect(response.code).toBe(403);
     expect(response.type).toBe("code");
   });
+
+  test("200TestInputText", async () => {
+    const user = "userGetAllGoodTestInputText";
+    const userData = await require("../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData]);
+
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+      },
+      query: { inputValue: "userGetAllGoodTestInputTe" },
+    };
+    const response = await require("../../api/user").userGetAll(data);
+
+    expect(response.code).toBe(200);
+    expect(response.type).toBe("json");
+    expect(!!response.json && response.json.constructor === Object).toBe(true);
+    expect(!!response.json && response.json.values.constructor === Array).toBe(true);
+    expect(response.json.values.length).toBeGreaterThanOrEqual(1);
+    expect(!!response.json && response.json.maxPage.constructor === Number).toBe(true);
+    expect(response.json.values[0]["id"] != null).toBe(true);
+    expect(response.json.values[0]["firstName"] != null).toBe(true);
+    expect(response.json.values[0]["lastName"] != null).toBe(true);
+    expect(response.json.values[0]["email"] != null).toBe(true);
+  });
+
+  test("200TestPage", async () => {
+    const user = "userGetAllGoodTestPage";
+    const userData = await require("../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData]);
+
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+      },
+      query: { page: 1, maxUser: 1 },
+    };
+    const response = await require("../../api/user").userGetAll(data);
+
+    expect(response.code).toBe(200);
+    expect(response.type).toBe("json");
+    expect(!!response.json && response.json.constructor === Object).toBe(true);
+    expect(!!response.json && response.json.values.constructor === Array).toBe(true);
+    expect(response.json.values.length).toBeGreaterThanOrEqual(1);
+    expect(!!response.json && response.json.maxPage.constructor === Number).toBe(true);
+    expect(response.json.values[0]["id"] != null).toBe(true);
+    expect(response.json.values[0]["firstName"] != null).toBe(true);
+    expect(response.json.values[0]["lastName"] != null).toBe(true);
+    expect(response.json.values[0]["email"] != null).toBe(true);
+  });
+
+  test("200TestOrderByFirstname", async () => {
+    const user = "userGetAllGoodTestOrderByFirstname";
+    const userData = await require("../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData]);
+
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+      },
+      query: { collumnName: "firstname" },
+    };
+    const response = await require("../../api/user").userGetAll(data);
+
+    expect(response.code).toBe(200);
+    expect(response.type).toBe("json");
+    expect(!!response.json && response.json.constructor === Object).toBe(true);
+    expect(!!response.json && response.json.values.constructor === Array).toBe(true);
+    expect(response.json.values.length).toBeGreaterThanOrEqual(1);
+    expect(!!response.json && response.json.maxPage.constructor === Number).toBe(true);
+    expect(response.json.values[0]["id"] != null).toBe(true);
+    expect(response.json.values[0]["firstName"] != null).toBe(true);
+    expect(response.json.values[0]["lastName"] != null).toBe(true);
+    expect(response.json.values[0]["email"] != null).toBe(true);
+  });
+
+  test("200TestOrderByLastname", async () => {
+    const user = "userGetAllGoodTestOrderByLastname";
+    const userData = await require("../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData]);
+
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+      },
+      query: { collumnName: "lastname" },
+    };
+    const response = await require("../../api/user").userGetAll(data);
+
+    expect(response.code).toBe(200);
+    expect(response.type).toBe("json");
+    expect(!!response.json && response.json.constructor === Object).toBe(true);
+    expect(!!response.json && response.json.values.constructor === Array).toBe(true);
+    expect(response.json.values.length).toBeGreaterThanOrEqual(1);
+    expect(!!response.json && response.json.maxPage.constructor === Number).toBe(true);
+    expect(response.json.values[0]["id"] != null).toBe(true);
+    expect(response.json.values[0]["firstName"] != null).toBe(true);
+    expect(response.json.values[0]["lastName"] != null).toBe(true);
+    expect(response.json.values[0]["email"] != null).toBe(true);
+  });
+
+  test("200TestOrderByEmail", async () => {
+    const user = "userGetAllGoodTestOrderByEmail";
+    const userData = await require("../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData]);
+
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+      },
+      query: { collumnName: "email" },
+    };
+    const response = await require("../../api/user").userGetAll(data);
+
+    expect(response.code).toBe(200);
+    expect(response.type).toBe("json");
+    expect(!!response.json && response.json.constructor === Object).toBe(true);
+    expect(!!response.json && response.json.values.constructor === Array).toBe(true);
+    expect(response.json.values.length).toBeGreaterThanOrEqual(1);
+    expect(!!response.json && response.json.maxPage.constructor === Number).toBe(true);
+    expect(response.json.values[0]["id"] != null).toBe(true);
+    expect(response.json.values[0]["firstName"] != null).toBe(true);
+    expect(response.json.values[0]["lastName"] != null).toBe(true);
+    expect(response.json.values[0]["email"] != null).toBe(true);
+  });
+
+  test("200TestOrderByTitle", async () => {
+    const user = "userGetAllGoodTestOrderByTitle";
+    const userData = await require("../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData]);
+
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+      },
+      query: { collumnName: "title" },
+    };
+    const response = await require("../../api/user").userGetAll(data);
+
+    expect(response.code).toBe(200);
+    expect(response.type).toBe("json");
+    expect(!!response.json && response.json.constructor === Object).toBe(true);
+    expect(!!response.json && response.json.values.constructor === Array).toBe(true);
+    expect(response.json.values.length).toBeGreaterThanOrEqual(1);
+    expect(!!response.json && response.json.maxPage.constructor === Number).toBe(true);
+    expect(response.json.values[0]["id"] != null).toBe(true);
+    expect(response.json.values[0]["firstName"] != null).toBe(true);
+    expect(response.json.values[0]["lastName"] != null).toBe(true);
+    expect(response.json.values[0]["email"] != null).toBe(true);
+  });
+
+  test("200TestOrderDESC", async () => {
+    const user = "userGetAllGoodTestOrderDESC";
+    const userData = await require("../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData]);
+
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+      },
+      query: { order: "false" },
+    };
+    const response = await require("../../api/user").userGetAll(data);
+
+    expect(response.code).toBe(200);
+    expect(response.type).toBe("json");
+    expect(!!response.json && response.json.constructor === Object).toBe(true);
+    expect(!!response.json && response.json.values.constructor === Array).toBe(true);
+    expect(response.json.values.length).toBeGreaterThanOrEqual(1);
+    expect(!!response.json && response.json.maxPage.constructor === Number).toBe(true);
+    expect(response.json.values[0]["id"] != null).toBe(true);
+    expect(response.json.values[0]["firstName"] != null).toBe(true);
+    expect(response.json.values[0]["lastName"] != null).toBe(true);
+    expect(response.json.values[0]["email"] != null).toBe(true);
+  });
+
+  test("200TestNoLimit", async () => {
+    const user = "userGetAllGoodTestNoLimit";
+    const userData = await require("../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, 'INSERT INTO `rolescorrelation` (`i_idUser`, `i_idRole`) VALUES (?, (SELECT i_id FROM `gd_roles` WHERE v_name = "roleViewUsers"))', [userData]);
+
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+      },
+      query: { all: "true" },
+    };
+    const response = await require("../../api/user").userGetAll(data);
+
+    expect(response.code).toBe(200);
+    expect(response.type).toBe("json");
+    expect(!!response.json && response.json.constructor === Object).toBe(true);
+    expect(!!response.json && response.json.values.constructor === Array).toBe(true);
+    expect(response.json.values.length).toBeGreaterThanOrEqual(1);
+    expect(!!response.json && response.json.maxPage.constructor === Number).toBe(true);
+    expect(response.json.values[0]["id"] != null).toBe(true);
+    expect(response.json.values[0]["firstName"] != null).toBe(true);
+    expect(response.json.values[0]["lastName"] != null).toBe(true);
+    expect(response.json.values[0]["email"] != null).toBe(true);
+  });
 });
 
 describe("GET /api/user/me", () => {
@@ -543,6 +807,40 @@ describe("PUT /api/user/rename/:id", () => {
     }
 
     expect(response.code).toBe(200);
+    expect(response.type).toBe("code");
+    expect(dbRes[1][0].v_firstName).toBe("firstNameTest");
+    expect(dbRes[1][0].v_lastName).toBe("lastNameTest");
+    expect(dbRes[1][0].v_title).toBe(null);
+  });
+
+  test("404noParams", async () => {
+    const userTarget = "userTargetRenameNoParams";
+    const userTargetData = await require("../createNewUserAndLog").createNewUserAndLog(db, executeQuery, userTarget);
+    expect(userTargetData, "User '" + userTarget + "' already exist").not.toBe(0);
+
+    const data = {
+      userAuthorization: {
+        checkSpecialCode: async (specialcode) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+        io,
+      },
+      body: { firstName: "test", lastName: "test", title: "test" },
+    };
+    const response = await require("../../api/user").userRenamePut(data);
+
+    const queryVerification = `SELECT v_firstName, v_lastName, v_title FROM users WHERE i_id = ?;`;
+    const dbRes = await executeQuery(db, queryVerification, [userTargetData]);
+    // The sql request has an error
+    if (dbRes[0]) {
+      throw dbRes[0];
+    }
+
+    expect(response.code).toBe(404);
     expect(response.type).toBe("code");
     expect(dbRes[1][0].v_firstName).toBe("firstNameTest");
     expect(dbRes[1][0].v_lastName).toBe("lastNameTest");
