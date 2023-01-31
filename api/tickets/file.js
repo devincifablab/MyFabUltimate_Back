@@ -7,8 +7,11 @@ function makeid(length, filename) {
   for (var i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
+  /* c8 ignore start */
   if (fs.existsSync(__dirname + "/../../data/files/stl/" + result + "_" + filename)) {
+    // Test ignoré parce que cette fonction n'est pas idempotent. Cette condition gère les fichiers qui ont le même nom et id
     return makeid(length, filename);
+    /* c8 ignore stop */
   } else {
     return result + "_" + filename;
   }
@@ -88,6 +91,7 @@ async function ticketFileGetListOfFile(data) {
                             FROM printstickets 
                             WHERE i_id = ?`;
   const resGetUserTicket = await data.app.executeQuery(data.app.db, queryGetUserTicket, [idTicket]);
+  /* c8 ignore start */
   if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
     console.log(resGetUserTicket[0]);
     return {
@@ -95,6 +99,7 @@ async function ticketFileGetListOfFile(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
 
   const idTicketUser = resGetUserTicket[1][0].id;
   if (idTicketUser != userIdAgent) {
@@ -120,6 +125,7 @@ async function ticketFileGetListOfFile(data) {
                             ON i_idprinter = gp.i_id
                             WHERE tf.i_idTicket = ?`;
   const dbRes = await data.app.executeQuery(data.app.db, querySelectFiles, [idTicket]);
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -127,6 +133,7 @@ async function ticketFileGetListOfFile(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
   return {
     type: "json",
     code: 200,
@@ -194,6 +201,7 @@ async function ticketFileGetOneFile(data) {
                 INNER JOIN gd_ticketprojecttype AS gdpt ON pt.i_projecttype = gdpt.i_id
                 WHERE tf.i_id = ?`;
   const resGetUserTicket = await data.app.executeQuery(data.app.db, query, [idFile]);
+  /* c8 ignore start */
   if (resGetUserTicket[0] || resGetUserTicket[1].length > 1) {
     console.log(resGetUserTicket[0]);
     return {
@@ -201,8 +209,8 @@ async function ticketFileGetOneFile(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
   if (resGetUserTicket[1].length < 1) {
-    console.log(idFile);
     return {
       type: "code",
       code: 400,
@@ -218,18 +226,19 @@ async function ticketFileGetOneFile(data) {
       };
     }
   }
-  if (fs.existsSync(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName))
+  if (fs.existsSync(__dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName)) {
     return {
       type: "download",
       code: 200,
       path: __dirname + "/../../data/files/stl/" + resGetUserTicket[1][0].fileServerName,
       fileName: idTicketUser == userIdAgent ? resGetUserTicket[1][0].fileName : resGetUserTicket[1][0].projectTypeName + "-" + idFile + "_" + resGetUserTicket[1][0].fileName,
     };
-  else
+  } else {
     return {
       type: "code",
       code: 204,
     };
+  }
 }
 
 /**
@@ -315,6 +324,7 @@ async function ticketFilePost(data) {
                         FROM printstickets 
                         WHERE i_id = ?`;
   const resGetUserTicket = await data.app.executeQuery(data.app.db, querySelect, [idTicket]);
+  /* c8 ignore start */
   if (resGetUserTicket[0] || resGetUserTicket[1].length > 1) {
     console.log(resGetUserTicket[0]);
     for (const file of files) {
@@ -325,6 +335,7 @@ async function ticketFilePost(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
   if (resGetUserTicket[1].length < 1) {
     for (const file of files) {
       fs.unlinkSync(file.tempFilePath);
@@ -352,25 +363,35 @@ async function ticketFilePost(data) {
   for (const file of files) {
     const fileNameSplited = file.name.split(".");
     if (fileNameSplited[fileNameSplited.length - 1].toLowerCase() === "stl") {
-      await new Promise(async (resolve) => {
+      const res = await new Promise(async (resolve) => {
         const newFileName = makeid(10, file.name);
         fs.copyFile(file.tempFilePath, __dirname + "/../../data/files/stl/" + newFileName, async (err) => {
+          /* c8 ignore start */
           if (err) throw err;
+          /* c8 ignore stop */
           const queryInsert = `INSERT INTO ticketfiles (i_idUser, i_idTicket, v_fileName, v_fileServerName)
                                         VALUES (?, ?, ?, ?);`;
           const resInsertFile = await data.app.executeQuery(data.app.db, queryInsert, [userIdAgent, idTicket, file.name, newFileName]);
+          /* c8 ignore start */
           if (resInsertFile[0]) {
             console.log(resInsertFile[0]);
-            return {
+            resolve({
               type: "code",
               code: 500,
-            };
+            });
           }
+          /* c8 ignore stop */
           resolve();
         });
       });
+      /* c8 ignore start */
+      if (res) {
+        // return 500
+        return res;
+      }
+      /* c8 ignore stop */
+      fs.unlinkSync(file.tempFilePath);
     }
-    fs.unlinkSync(idTicket);
   }
 
   //return response
@@ -406,8 +427,6 @@ async function ticketFilePost(data) {
  *             properties:
  *               comment:
  *                 type: string
- *               isValid:
- *                 type: boolean
  *     responses:
  *       200:
  *         description: "Modification saved successfully"
@@ -450,11 +469,18 @@ async function ticketFilePut(data) {
                             FROM ticketfiles 
                             WHERE i_id = ?`;
   const resGetUserTicket = await data.app.executeQuery(data.app.db, queryGetUserTicket, [idTicket]);
-  if (resGetUserTicket[0] || resGetUserTicket[1].length !== 1) {
+  /* c8 ignore start */
+  if (resGetUserTicket[0]) {
     console.log(resGetUserTicket[0]);
     return {
       type: "code",
       code: 500,
+    };
+    /* c8 ignore stop */
+  } else if (resGetUserTicket[1].length !== 1) {
+    return {
+      type: "code",
+      code: 204,
     };
   }
 
@@ -475,20 +501,17 @@ async function ticketFilePut(data) {
                         WHERE i_id = ?`;
   const options = data.body.idprinter !== undefined ? [data.body.comment, data.body.idprinter, idTicket] : [data.body.comment, idTicket];
   const resUpdateFile = await data.app.executeQuery(data.app.db, queryUpdate, options);
+  /* c8 ignore start */
   if (resUpdateFile[0]) {
     console.log(resUpdateFile[0]);
     return {
       type: "code",
       code: 500,
     };
-  } else if (resUpdateFile[0] || resUpdateFile[1].affectedRows !== 1) {
-    return {
-      type: "code",
-      code: 204,
-    };
   }
+  /* c8 ignore stop */
 
-  //Update bot channels
+  //Update web clients
   data.app.io.to(`ticket-${idTicket}`).emit("reload-ticket");
 
   //return response
@@ -498,6 +521,7 @@ async function ticketFilePut(data) {
   };
 }
 
+/* c8 ignore start */
 module.exports.startApi = startApi;
 async function startApi(app) {
   app.get("/api/ticket/:id/file", async (req, res) => {
@@ -548,3 +572,4 @@ async function startApi(app) {
     }
   });
 }
+/* c8 ignore stop */

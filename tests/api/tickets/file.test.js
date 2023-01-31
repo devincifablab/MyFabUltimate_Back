@@ -2,6 +2,11 @@ const fs = require("fs");
 const executeQuery = require("../../../functions/dataBase/executeQuery").run;
 let db;
 
+function emptyFunction() {
+  return io;
+}
+const io = { emit: emptyFunction, to: emptyFunction };
+
 beforeAll(async () => {
   db = await require("../../../functions/dataBase/createConnection").open();
   await fs.copyFileSync(__dirname + "/../../Forme-Boîte.stl", __dirname + "/../../../data/files/stl/token-test.STL");
@@ -292,7 +297,7 @@ describe("GET /api/file/:id/", () => {
     const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
     await executeQuery(
       db,
-      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
+      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'oneFileTest200UserAgent.stl', 'token-test.STL', 'test')",
       [userData, idTicket]
     );
     const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
@@ -319,7 +324,7 @@ describe("GET /api/file/:id/", () => {
     expect(response.code).toBe(200);
     expect(response.type).toBe("download");
     expect(response.path != null).toBe(true);
-    expect(response.fileName != null).toBe(true);
+    expect(response.fileName.endsWith("oneFileTest200UserAgent.stl")).toBe(true);
   });
 
   test("200userOwner", async () => {
@@ -331,7 +336,7 @@ describe("GET /api/file/:id/", () => {
     const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
     await executeQuery(
       db,
-      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
+      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'oneFileTest200UserOwner.stl', 'token-test.STL', 'test')",
       [userData, idTicket]
     );
     const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
@@ -358,7 +363,7 @@ describe("GET /api/file/:id/", () => {
     expect(response.code).toBe(200);
     expect(response.type).toBe("download");
     expect(response.path != null).toBe(true);
-    expect(response.fileName != null).toBe(true);
+    expect(response.fileName.endsWith("oneFileTest200UserOwner.stl")).toBe(true);
   });
 
   test("400noParams", async () => {
@@ -370,7 +375,7 @@ describe("GET /api/file/:id/", () => {
     const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
     await executeQuery(
       db,
-      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
+      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'oneFileTest400noParams.stl', 'token-test.STL', 'test')",
       [userData, idTicket]
     );
     const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
@@ -388,7 +393,7 @@ describe("GET /api/file/:id/", () => {
         executeQuery: executeQuery,
       },
     };
-    const response = await require("../../../api/tickets/file").ticketFileGetListOfFile(data);
+    const response = await require("../../../api/tickets/file").ticketFileGetOneFile(data);
 
     //Tests
     expect(response.code).toBe(400);
@@ -404,10 +409,9 @@ describe("GET /api/file/:id/", () => {
     const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
     await executeQuery(
       db,
-      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
+      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'oneFileTest400noId.stl', 'token-test.STL', 'test')",
       [userData, idTicket]
     );
-    const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
 
     //Execute
     const data = {
@@ -423,7 +427,43 @@ describe("GET /api/file/:id/", () => {
       },
       params: {},
     };
-    const response = await require("../../../api/tickets/file").ticketFileGetListOfFile(data);
+    const response = await require("../../../api/tickets/file").ticketFileGetOneFile(data);
+
+    //Tests
+    expect(response.code).toBe(400);
+    expect(response.type).toBe("code");
+  });
+
+  test("400fileDataNotExist", async () => {
+    //Prepare
+    const user = "ticketGetFile400fileDataNotExist";
+    const userData = await require("../../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+    const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+    await executeQuery(
+      db,
+      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'oneFileTest400fileDataNotExist.stl', 'token-test.STL', 'test')",
+      [userData, idTicket]
+    );
+
+    //Execute
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+      },
+      params: {
+        id: 9999999999999999999999,
+      },
+    };
+    const response = await require("../../../api/tickets/file").ticketFileGetOneFile(data);
 
     //Tests
     expect(response.code).toBe(400);
@@ -439,10 +479,9 @@ describe("GET /api/file/:id/", () => {
     const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
     await executeQuery(
       db,
-      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
+      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'oneFileTest400idIsNan.stl', 'token-test.STL', 'test')",
       [userData, idTicket]
     );
-    const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
 
     //Execute
     const data = {
@@ -460,7 +499,7 @@ describe("GET /api/file/:id/", () => {
         id: "idTicket",
       },
     };
-    const response = await require("../../../api/tickets/file").ticketFileGetListOfFile(data);
+    const response = await require("../../../api/tickets/file").ticketFileGetOneFile(data);
 
     //Tests
     expect(response.code).toBe(400);
@@ -476,7 +515,7 @@ describe("GET /api/file/:id/", () => {
     const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
     await executeQuery(
       db,
-      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
+      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'oneFileTest401noUser.stl', 'token-test.STL', 'test')",
       [userData, idTicket]
     );
     const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
@@ -496,7 +535,7 @@ describe("GET /api/file/:id/", () => {
         id: idFile,
       },
     };
-    const response = await require("../../../api/tickets/file").ticketFileGetListOfFile(data);
+    const response = await require("../../../api/tickets/file").ticketFileGetOneFile(data);
 
     //Tests
     expect(response.code).toBe(401);
@@ -515,7 +554,7 @@ describe("GET /api/file/:id/", () => {
     const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
     await executeQuery(
       db,
-      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
+      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'oneFileTest403unauthorized.stl', 'token-test.STL', 'test')",
       [userData, idTicket]
     );
     const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
@@ -536,10 +575,47 @@ describe("GET /api/file/:id/", () => {
         id: idFile,
       },
     };
-    const response = await require("../../../api/tickets/file").ticketFileGetListOfFile(data);
+    const response = await require("../../../api/tickets/file").ticketFileGetOneFile(data);
 
     //Tests
     expect(response.code).toBe(403);
+    expect(response.type).toBe("code");
+  });
+
+  test("204noSavedFile", async () => {
+    //Prepare
+    const user = "ticketGetFile204noSavedFile";
+    const userData = await require("../../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+    const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+    await executeQuery(
+      db,
+      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'oneFileTest204noSavedFile.stl', 'noFile.STL', 'test')",
+      [userData, idTicket]
+    );
+    const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+
+    //Execute
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+      },
+      params: {
+        id: idFile,
+      },
+    };
+    const response = await require("../../../api/tickets/file").ticketFileGetOneFile(data);
+
+    //Tests
+    expect(response.code).toBe(204);
     expect(response.type).toBe("code");
   });
 });
@@ -565,6 +641,7 @@ describe("POST /api/ticket/:id/file/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -601,6 +678,7 @@ describe("POST /api/ticket/:id/file/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -643,6 +721,7 @@ describe("POST /api/ticket/:id/file/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -693,6 +772,7 @@ describe("POST /api/ticket/:id/file/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -734,6 +814,7 @@ describe("POST /api/ticket/:id/file/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       files: {
         filedata: {
@@ -772,6 +853,7 @@ describe("POST /api/ticket/:id/file/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {},
       files: {
@@ -811,6 +893,7 @@ describe("POST /api/ticket/:id/file/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: "idTicket",
@@ -851,6 +934,7 @@ describe("POST /api/ticket/:id/file/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -892,6 +976,7 @@ describe("POST /api/ticket/:id/file/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: 1000000,
@@ -936,6 +1021,7 @@ describe("POST /api/ticket/:id/file/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -983,12 +1069,14 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idFile,
       },
       body: {
         comment: "New comment",
+        idprinter: "1",
         isValid: true,
       },
     };
@@ -1024,12 +1112,13 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idFile,
       },
       body: {
-        isValid: true,
+        comment: "test",
       },
     };
     const response = await require("../../../api/tickets/file").ticketFilePut(data);
@@ -1064,6 +1153,7 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idFile,
@@ -1104,6 +1194,7 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idFile,
@@ -1146,6 +1237,7 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         comment: "New comment",
@@ -1184,6 +1276,7 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {},
       body: {
@@ -1210,7 +1303,6 @@ describe("PUT /api/file/:id/", () => {
       "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
       [userData, idTicket]
     );
-    const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
 
     //Execute
     const data = {
@@ -1223,6 +1315,7 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: "idFile",
@@ -1264,6 +1357,7 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idFile,
@@ -1301,6 +1395,7 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idFile,
@@ -1339,52 +1434,12 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idFile,
       },
       body: {
-        isValid: "notABoolean",
-      },
-    };
-    const response = await require("../../../api/tickets/file").ticketFilePut(data);
-
-    //Tests
-    expect(response.code).toBe(400);
-    expect(response.type).toBe("code");
-  });
-
-  test("400commentAndInvalidValid", async () => {
-    //Prepare
-    const user = "filePut400commentAndInvalidValid";
-    const userData = await require("../../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
-    expect(userData, "User '" + user + "' already exist").not.toBe(0);
-    await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
-    const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
-    await executeQuery(
-      db,
-      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
-      [userData, idTicket]
-    );
-    const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
-
-    //Execute
-    const data = {
-      userId: userData,
-      userAuthorization: {
-        validateUserAuth: async (app, userIdAgent, authName) => {
-          return true;
-        },
-      },
-      app: {
-        db: db,
-        executeQuery: executeQuery,
-      },
-      params: {
-        id: idFile,
-      },
-      body: {
-        comment: "New comment",
         isValid: "notABoolean",
       },
     };
@@ -1419,6 +1474,7 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idFile,
@@ -1439,13 +1495,15 @@ describe("PUT /api/file/:id/", () => {
     //Prepare
     const user = "filePut403unauthorizedUser";
     const userData = await require("../../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
-    expect(userData, "User '" + user + "' already exist").not.toBe(0);
-    await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+    const userTicketOwner = "filePut403unauthorizedUserTicketOwner";
+    const userTicketOwnerData = await require("../../createNewUserAndLog").createNewUserAndLog(db, executeQuery, userTicketOwner);
+    expect(userTicketOwnerData, "User '" + userTicketOwner + "' already exist").not.toBe(0);
+    await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userTicketOwnerData]);
     const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
     await executeQuery(
       db,
       "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
-      [userData, idTicket]
+      [userTicketOwnerData, idTicket]
     );
     const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
 
@@ -1460,6 +1518,7 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idFile,
@@ -1488,6 +1547,47 @@ describe("PUT /api/file/:id/", () => {
       "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
       [userData, idTicket]
     );
+
+    //Execute
+    const data = {
+      userId: userData,
+      userAuthorization: {
+        validateUserAuth: async (app, userIdAgent, authName) => {
+          return true;
+        },
+      },
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+        io,
+      },
+      params: {
+        id: 1000000,
+      },
+      body: {
+        comment: "New comment",
+        isValid: true,
+      },
+    };
+    const response = await require("../../../api/tickets/file").ticketFilePut(data);
+
+    //Tests
+    expect(response.code).toBe(204);
+    expect(response.type).toBe("code");
+  });
+
+  test("204noFileMatch", async () => {
+    //Prepare
+    const user = "filePut204noFileMatch";
+    const userData = await require("../../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    await executeQuery(db, "INSERT INTO `printstickets` (`i_idUser`, `i_projecttype`, `i_priority`) VALUES (?, 1, 1)", [userData]);
+    const idTicket = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
+    await executeQuery(
+      db,
+      "INSERT INTO `ticketfiles` (`i_idUser`, `i_idTicket`, `v_fileName`, `v_fileServerName`, `v_comment`) VALUES (?, ?, 'test.stl', 'token-test.STL', 'test')",
+      [userData, idTicket]
+    );
     const idFile = (await executeQuery(db, "SELECT LAST_INSERT_ID() AS 'id'", []))[1][0].id;
 
     //Execute
@@ -1501,13 +1601,13 @@ describe("PUT /api/file/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
-        id: 1000000,
+        id: 10000000000000,
       },
       body: {
-        comment: "New comment",
-        isValid: true,
+        comment: "test",
       },
     };
     const response = await require("../../../api/tickets/file").ticketFilePut(data);
