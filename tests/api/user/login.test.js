@@ -33,7 +33,7 @@ describe("POST /api/user/login/", () => {
     expect(response.type).toBe("json");
     expect(response.json.dvflCookie != null).toBe(true);
     expect(Object.keys(data.app.cookiesList).length).not.toBe(0);
-    expect(data.app.cookiesList[response.json.dvflCookie]).toBe(userData);
+    expect(data.app.cookiesList[response.json.dvflCookie].id).toBe(userData);
   });
 
   test("400_noBody", async () => {
