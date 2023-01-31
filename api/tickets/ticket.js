@@ -109,7 +109,7 @@ async function getTicketAllFromUser(data) {
     };
   }
 
-  const page = data.query.page ? data.query.page : 0;
+  const page = data.query && data.query.page ? data.query.page : 0;
   const query = `SELECT pt.i_id AS 'id',
              CONCAT(u.v_firstName, (CASE WHEN u.v_lastName != "" THEN CONCAT(' ', LEFT(u.v_lastName, 1), '.') ELSE "" END)) AS 'userName',
              tpt.v_name AS 'projectType', u.v_title AS 'title' ,
@@ -123,7 +123,7 @@ async function getTicketAllFromUser(data) {
              WHERE pt.i_idUser = ? 
              AND pt.b_isDeleted = 0 
              ORDER BY pt.i_id DESC
-             ${data.query.all ? "" : "LIMIT ? OFFSET ?"};`;
+             ${data.query && data.query.all ? "" : "LIMIT ? OFFSET ?"};`;
 
   const dbRes = await data.app.executeQuery(data.app.db, query, [userIdAgent, maxTicket, maxTicket * page]);
   if (dbRes[0]) {
@@ -154,7 +154,7 @@ async function getTicketAllFromUser(data) {
   return {
     type: "json",
     code: 200,
-    json: { maxPage: data.query.all ? 1 : maxPage, values: dbRes[1] },
+    json: { maxPage: data.query && data.query.all ? 1 : maxPage, values: dbRes[1] },
   };
 }
 
@@ -221,6 +221,7 @@ async function getTicketAll(data) {
       code: 403,
     };
   }
+  if (data.query === undefined) data.query = {};
   const inputText = data.query.inputValue ? data.query.inputValue : "";
   const page = data.query.page ? data.query.page : 0;
   const selectOpenOnly = data.query.selectOpenOnly ? data.query.selectOpenOnly : false;

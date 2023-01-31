@@ -5,6 +5,11 @@ let idProjectType;
 let idNewProjectType;
 let idPriority;
 
+function emptyFunction() {
+  return io;
+}
+const io = { emit: emptyFunction, to: emptyFunction };
+
 beforeAll(async () => {
   db = await require("../../../functions/dataBase/createConnection").open();
   await executeQuery(db, "INSERT INTO `gd_ticketpriority` (`v_name`, `v_color`) VALUES ('testTicket', '000000')", []);
@@ -40,6 +45,7 @@ describe("GET /api/ticket/me/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/tickets/ticket").getTicketAllFromUser(data);
@@ -47,13 +53,14 @@ describe("GET /api/ticket/me/", () => {
     //Tests
     expect(response.code).toBe(200);
     expect(response.type).toBe("json");
-    expect(response.json.length).not.toBe(0);
-    expect(typeof response.json[0].id).toBe("number");
-    expect(typeof response.json[0].userName).toBe("string");
-    expect(Object.prototype.toString.call(response.json[0].creationDate) === "[object Date]").toBe(true);
-    expect(Object.prototype.toString.call(response.json[0].modificationDate) === "[object Date]").toBe(true);
-    expect(typeof response.json[0].priorityName).toBe("string");
-    expect(typeof response.json[0].priorityColor).toBe("string");
+    expect(typeof response.json.maxPage).toBe("number");
+    expect(response.json.values.length).not.toBe(0);
+    expect(typeof response.json.values[0].id).toBe("number");
+    expect(typeof response.json.values[0].userName).toBe("string");
+    expect(Object.prototype.toString.call(response.json.values[0].creationDate) === "[object Date]").toBe(true);
+    expect(Object.prototype.toString.call(response.json.values[0].modificationDate) === "[object Date]").toBe(true);
+    expect(typeof response.json.values[0].priorityName).toBe("string");
+    expect(typeof response.json.values[0].priorityColor).toBe("string");
   });
 
   test("401_noUser", async () => {
@@ -72,6 +79,7 @@ describe("GET /api/ticket/me/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/tickets/ticket").getTicketAllFromUser(data);
@@ -104,6 +112,7 @@ describe("GET /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/tickets/ticket").getTicketAll(data);
@@ -111,13 +120,14 @@ describe("GET /api/ticket/", () => {
     //Tests
     expect(response.code).toBe(200);
     expect(response.type).toBe("json");
-    expect(response.json.length).not.toBe(0);
-    expect(typeof response.json[0].id).toBe("number");
-    expect(typeof response.json[0].userName).toBe("string");
-    expect(Object.prototype.toString.call(response.json[0].creationDate) === "[object Date]").toBe(true);
-    expect(Object.prototype.toString.call(response.json[0].modificationDate) === "[object Date]").toBe(true);
-    expect(typeof response.json[0].priorityName).toBe("string");
-    expect(typeof response.json[0].priorityColor).toBe("string");
+    expect(typeof response.json.maxPage).toBe("number");
+    expect(response.json.values.length).not.toBe(0);
+    expect(typeof response.json.values[0].id).toBe("number");
+    expect(typeof response.json.values[0].userName).toBe("string");
+    expect(Object.prototype.toString.call(response.json.values[0].creationDate) === "[object Date]").toBe(true);
+    expect(Object.prototype.toString.call(response.json.values[0].modificationDate) === "[object Date]").toBe(true);
+    expect(typeof response.json.values[0].priorityName).toBe("string");
+    expect(typeof response.json.values[0].priorityColor).toBe("string");
   });
 
   test("401noUser", async () => {
@@ -136,6 +146,7 @@ describe("GET /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/tickets/ticket").getTicketAll(data);
@@ -162,6 +173,7 @@ describe("GET /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/tickets/ticket").getTicketAll(data);
@@ -195,6 +207,7 @@ describe("GET /api/ticket/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -233,6 +246,7 @@ describe("GET /api/ticket/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -269,6 +283,7 @@ describe("GET /api/ticket/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/tickets/ticket").getTicketById(data);
@@ -295,6 +310,7 @@ describe("GET /api/ticket/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {},
     };
@@ -322,6 +338,7 @@ describe("GET /api/ticket/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: "NaN",
@@ -352,6 +369,7 @@ describe("GET /api/ticket/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -381,6 +399,7 @@ describe("GET /api/ticket/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: 100000000,
@@ -415,6 +434,7 @@ describe("GET /api/ticket/:id/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -446,6 +466,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         projectType: 1,
@@ -479,6 +500,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         projectType: 1,
@@ -518,6 +540,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         projectType: 1,
@@ -561,6 +584,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         projectType: 1,
@@ -594,6 +618,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       files: {
         filedata: [],
@@ -623,6 +648,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         comment: "test",
@@ -655,6 +681,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         projectType: "NaN",
@@ -688,6 +715,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         projectType: 1,
@@ -720,6 +748,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         projectType: 1,
@@ -753,6 +782,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         projectType: 100,
@@ -786,6 +816,7 @@ describe("POST /api/ticket/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         projectType: 1,
@@ -824,6 +855,7 @@ describe("DELETE /api/ticket/:id", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -860,6 +892,7 @@ describe("DELETE /api/ticket/:id", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -893,6 +926,7 @@ describe("DELETE /api/ticket/:id", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/tickets/ticket").deleteTicketWithId(data);
@@ -923,6 +957,7 @@ describe("DELETE /api/ticket/:id", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {},
     };
@@ -953,6 +988,7 @@ describe("DELETE /api/ticket/:id", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -986,6 +1022,7 @@ describe("DELETE /api/ticket/:id", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: 1000000,
@@ -1022,6 +1059,7 @@ describe("DELETE /api/ticket/:id", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1055,6 +1093,7 @@ describe("DELETE /api/ticket/:id", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1090,6 +1129,7 @@ describe("PUT /api/ticket/:id/setProjecttype/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1124,6 +1164,7 @@ describe("PUT /api/ticket/:id/setProjecttype/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       query: {
         projecttype: idNewProjectType,
@@ -1155,6 +1196,7 @@ describe("PUT /api/ticket/:id/setProjecttype/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {},
       query: {
@@ -1187,6 +1229,7 @@ describe("PUT /api/ticket/:id/setProjecttype/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: "idTicket",
@@ -1221,6 +1264,7 @@ describe("PUT /api/ticket/:id/setProjecttype/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1252,6 +1296,7 @@ describe("PUT /api/ticket/:id/setProjecttype/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1284,6 +1329,7 @@ describe("PUT /api/ticket/:id/setProjecttype/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1317,6 +1363,7 @@ describe("PUT /api/ticket/:id/setProjecttype/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1351,6 +1398,7 @@ describe("PUT /api/ticket/:id/setProjecttype/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1383,6 +1431,7 @@ describe("PUT /api/ticket/:id/setProjecttype/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: 1000000,
@@ -1419,6 +1468,7 @@ describe("PUT /api/ticket/:id/setStatus", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1453,6 +1503,7 @@ describe("PUT /api/ticket/:id/setStatus", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       query: {
         idStatus: idNewPriority,
@@ -1484,6 +1535,7 @@ describe("PUT /api/ticket/:id/setStatus", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {},
       query: {
@@ -1516,6 +1568,7 @@ describe("PUT /api/ticket/:id/setStatus", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: "idTicket",
@@ -1550,6 +1603,7 @@ describe("PUT /api/ticket/:id/setStatus", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1581,6 +1635,7 @@ describe("PUT /api/ticket/:id/setStatus", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1613,6 +1668,7 @@ describe("PUT /api/ticket/:id/setStatus", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1646,6 +1702,7 @@ describe("PUT /api/ticket/:id/setStatus", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1680,6 +1737,7 @@ describe("PUT /api/ticket/:id/setStatus", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -1714,6 +1772,7 @@ describe("PUT /api/ticket/:id/setStatus", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: 1000000,

@@ -1,9 +1,11 @@
 const fs = require("fs");
 const executeQuery = require("../../../functions/dataBase/executeQuery").run;
 let db;
-let idProjectType;
-let idNewProjectType;
-let idPriority;
+
+function emptyFunction() {
+  return io;
+}
+const io = { emit: emptyFunction, to: emptyFunction };
 
 beforeAll(async () => {
   db = await require("../../../functions/dataBase/createConnection").open();
@@ -50,6 +52,7 @@ describe("GET /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -86,6 +89,7 @@ describe("GET /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -122,6 +126,7 @@ describe("GET /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/tickets/message").getTicketMessage(data);
@@ -151,6 +156,7 @@ describe("GET /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {},
     };
@@ -181,6 +187,7 @@ describe("GET /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: "idTicket",
@@ -212,6 +219,7 @@ describe("GET /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -247,6 +255,7 @@ describe("GET /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -284,6 +293,7 @@ describe("POST /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -319,6 +329,7 @@ describe("POST /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -354,6 +365,7 @@ describe("POST /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         content: "testContent",
@@ -386,6 +398,7 @@ describe("POST /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {},
       body: {
@@ -419,6 +432,7 @@ describe("POST /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: "idTicket",
@@ -454,6 +468,7 @@ describe("POST /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -486,6 +501,7 @@ describe("POST /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -518,6 +534,7 @@ describe("POST /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,
@@ -556,6 +573,7 @@ describe("POST /api/ticket/:id/message/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         id: idTicket,

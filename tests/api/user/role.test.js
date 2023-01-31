@@ -3,6 +3,11 @@ let db;
 let idRoleTest;
 let idRoleProtectedTest;
 
+function emptyFunction() {
+  return io;
+}
+const io = { emit: emptyFunction, to: emptyFunction };
+
 beforeAll(async () => {
   db = await require("../../../functions/dataBase/createConnection").open();
   await executeQuery(db, "INSERT INTO gd_roles (v_name, v_description, v_discordPrefix, v_color) VALUES ('testRole', '', '', '')", []);
@@ -31,6 +36,7 @@ describe("GET /api/role/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/user/role").getRoles(data);
@@ -58,6 +64,7 @@ describe("GET /api/role/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/user/role").getRoles(data);
@@ -86,6 +93,7 @@ describe("GET /api/user/:idUser/role/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -119,6 +127,7 @@ describe("GET /api/user/:idUser/role/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
     const response = await require("../../../api/user/role").getRolesForUserById(data);
@@ -144,6 +153,7 @@ describe("GET /api/user/:idUser/role/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {},
     };
@@ -169,6 +179,7 @@ describe("GET /api/user/:idUser/role/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -197,6 +208,7 @@ describe("GET /api/user/:idUser/role/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -220,6 +232,7 @@ describe("GET /api/user/role/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
 
@@ -245,6 +258,7 @@ describe("GET /api/user/role/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
 
@@ -279,6 +293,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -317,6 +332,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
 
@@ -351,6 +367,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idRole: idRoleTest,
@@ -388,6 +405,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -425,6 +443,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: "userDataTarget",
@@ -463,6 +482,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -504,6 +524,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -545,6 +566,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -583,6 +605,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userData,
@@ -624,6 +647,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -662,6 +686,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -697,6 +722,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -735,6 +761,7 @@ describe("POST /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -779,6 +806,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -821,6 +849,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
     };
 
@@ -859,6 +888,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idRole: idRoleTest,
@@ -900,6 +930,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idRole: idRoleTest,
@@ -941,6 +972,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: "userDataTarget",
@@ -983,6 +1015,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -1024,6 +1057,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -1069,6 +1103,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -1114,6 +1149,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -1156,6 +1192,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userData,
@@ -1197,6 +1234,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -1236,6 +1274,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
@@ -1278,6 +1317,7 @@ describe("DELETE /api/user/:idUser/role/:idRole/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       params: {
         idUser: userDataTarget,
