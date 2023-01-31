@@ -1,6 +1,11 @@
 const executeQuery = require("../../../functions/dataBase/executeQuery").run;
 let db;
 
+function emptyFunction() {
+  return io;
+}
+const io = { emit: emptyFunction, to: emptyFunction };
+
 beforeAll(async () => {
   db = await require("../../../functions/dataBase/createConnection").open();
 });
@@ -16,6 +21,7 @@ describe("POST /user/register/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         firstName: "test",
@@ -41,6 +47,7 @@ describe("POST /user/register/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       sendMailFunction: {
         sendMail: (email, title, body) => {
@@ -60,6 +67,7 @@ describe("POST /user/register/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         lastName: "200",
@@ -84,6 +92,7 @@ describe("POST /user/register/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         firstName: "test",
@@ -108,6 +117,7 @@ describe("POST /user/register/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         firstName: "test",
@@ -132,6 +142,7 @@ describe("POST /user/register/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         firstName: "test",
@@ -156,6 +167,7 @@ describe("POST /user/register/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         firstName: "test",
@@ -181,6 +193,7 @@ describe("POST /user/register/", () => {
       app: {
         db: db,
         executeQuery: executeQuery,
+        io,
       },
       body: {
         firstName: "test",
