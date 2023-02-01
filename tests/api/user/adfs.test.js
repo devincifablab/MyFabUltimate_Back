@@ -9,7 +9,7 @@ afterAll(() => {
   db.end();
 });
 
-describe("POST /api/user/login/", () => {
+describe("POST /api/user/login/adfs/", () => {
   test("200userAlreadyExist", async () => {
     const user = "loginPost200userAlreadyExist";
     const userData = await require("../../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
