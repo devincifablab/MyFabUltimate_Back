@@ -36,6 +36,33 @@ describe("POST /api/user/login/", () => {
     expect(data.app.cookiesList[response.json.dvflCookie].id).toBe(userData);
   });
 
+  test("200testExpire", async () => {
+    const user = "loginPost200testExpire";
+    const userData = await require("../../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);
+    expect(userData, "User '" + user + "' already exist").not.toBe(0);
+    const data = {
+      userId: userData,
+      userAuthorization: require("../../../functions/userAuthorization"),
+      app: {
+        db: db,
+        executeQuery: executeQuery,
+        cookiesList: {},
+      },
+      body: {
+        email: user + "@test.com",
+        password: "string",
+        expires: new Date().setHours(new Date().getHours() + 2),
+      },
+    };
+    const response = await require("../../../api/user/login").postLogin(data);
+
+    expect(response.code).toBe(200);
+    expect(response.type).toBe("json");
+    expect(response.json.dvflCookie != null).toBe(true);
+    expect(Object.keys(data.app.cookiesList).length).not.toBe(0);
+    expect(data.app.cookiesList[response.json.dvflCookie].id).toBe(userData);
+  });
+
   test("400_noBody", async () => {
     const user = "loginPostNoBody400";
     const userData = await require("../../createNewUserAndLog").createNewUserAndLog(db, executeQuery, user);

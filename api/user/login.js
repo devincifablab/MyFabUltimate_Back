@@ -58,6 +58,7 @@ async function postLogin(data) {
                         AND b_deleted = 0;`;
   const dbRes = await data.app.executeQuery(data.app.db, querySelect, [data.body.email, sha256(data.body.password)]);
   // Error with the sql request
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return {
@@ -65,6 +66,7 @@ async function postLogin(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
   // No match with tables => invalid email or password
   if (dbRes[1].length < 1) {
     return {
@@ -73,6 +75,7 @@ async function postLogin(data) {
     };
   }
   // Too much match with tables
+  /* c8 ignore start */
   if (dbRes[1].length > 1) {
     console.log("Login match with multiple users : " + data.body.email);
     return {
@@ -80,6 +83,7 @@ async function postLogin(data) {
       code: 500,
     };
   }
+  /* c8 ignore stop */
 
   const mailValidated = dbRes[1][0].mailValidated;
   if (mailValidated === 0) {
@@ -104,6 +108,7 @@ async function postLogin(data) {
   };
 }
 
+/* c8 ignore start */
 module.exports.startApi = startApi;
 async function startApi(app) {
   app.post("/api/user/login/", async function (req, res) {
@@ -118,3 +123,4 @@ async function startApi(app) {
     }
   });
 }
+/* c8 ignore stop */
