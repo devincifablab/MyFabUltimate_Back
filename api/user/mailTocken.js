@@ -23,7 +23,7 @@ async function getMailtoken(data) {
   if (!userIdAgent) {
     return {
       type: "code",
-      code: 404,
+      code: 401,
     };
   }
 
@@ -31,7 +31,7 @@ async function getMailtoken(data) {
   if (!authChangeRoleResult) {
     return {
       type: "code",
-      code: 401,
+      code: 403,
     };
   }
 
@@ -43,13 +43,15 @@ async function getMailtoken(data) {
         mailtocken.i_idUser = users.i_id;`;
   const resToken = await data.app.executeQuery(data.app.db, querySelect, []);
   // Error with the sql request
+  /* c8 ignore start */
   if (resToken[0]) {
     console.log(resToken[0]);
     return {
       type: "code",
-      code: 404,
+      code: 500,
     };
   }
+  /* c8 ignore stop */
 
   return {
     type: "json",
@@ -58,6 +60,7 @@ async function getMailtoken(data) {
   };
 }
 
+/* c8 ignore start */
 module.exports.startApi = startApi;
 async function startApi(app) {
   app.get("/api/user/mailtoken/", async function (req, res) {
@@ -72,3 +75,4 @@ async function startApi(app) {
     }
   });
 }
+/* c8 ignore stop */
