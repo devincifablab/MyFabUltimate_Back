@@ -4,7 +4,10 @@ const fs = require("fs");
 const sha256 = require("sha256");
 const config = require("../../config.json");
 const pendingUsers = {};
+module.exports.pendingUsers = pendingUsers;
 
+/* c8 ignore start */
+// Code non testable
 function makeid(length) {
   var result = "";
   var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -38,6 +41,7 @@ var samlStrategy = new saml.Strategy(
   }
 );
 passport.use(samlStrategy);
+/* c8 ignore stop */
 
 /**
  * @swagger
@@ -77,7 +81,7 @@ passport.use(samlStrategy);
 
 module.exports.postLoginADFS = postLoginADFS;
 async function postLoginADFS(data) {
-  const myFabOpen = JSON.parse(fs.readFileSync(__dirname + "/../../data/serviceData.json")).myFabOpen;
+  const myFabOpen = data.myFabOpen;
   if (!myFabOpen) {
     return {
       type: "code",
@@ -85,7 +89,7 @@ async function postLoginADFS(data) {
     };
   }
 
-  if (!data.body || !data.body.token || !pendingUsers[data.body.token]) {
+  if (!data.body || !pendingUsers[data.body.token]) {
     return {
       type: "code",
       code: 400,
@@ -104,18 +108,21 @@ async function postLoginADFS(data) {
   const lastName = pendingUsers[data.body.token].lastName;
   const email = pendingUsers[data.body.token].email;
   const title = pendingUsers[data.body.token].title;
+  /* c8 ignore start */
   if (!firstName || !lastName || !email || !title) {
     console.log("Error with adfs get user info"); //DELETE THIS
     console.log(pendingUsers[data.body.token]); //DELETE THIS
     await fs.writeFileSync(__dirname + "/../../data/samlResult.json", JSON.stringify(pendingUsers[data.body.token])); //DELETE THIS
     return {
       type: "code",
-      code: 400,
+      code: 500,
     };
   }
+  /* c8 ignore stop */
 
   const dbRes = await data.app.executeQuery(data.app.db, "SELECT `i_id` AS 'id', `v_title` AS 'title' FROM `users` WHERE `v_email` = ?;", [email]);
   // Error with the sql request
+  /* c8 ignore start */
   if (dbRes[0]) {
     console.log(dbRes[0]);
     return resolve({
@@ -123,6 +130,7 @@ async function postLoginADFS(data) {
       code: 500,
     });
   }
+  /* c8 ignore stop */
 
   if (dbRes[1].length < 1) {
     //On doit créer un compte
@@ -133,6 +141,7 @@ async function postLoginADFS(data) {
       [firstName, lastName, email, sha256(data.body.token), language, title]
     );
     // Error with the sql request
+    /* c8 ignore start */
     if (resInsertNewAccount[0] || resInsertNewAccount[1].affectedRows !== 1) {
       console.log(resInsertNewAccount[0]);
       return resolve({
@@ -140,8 +149,10 @@ async function postLoginADFS(data) {
         code: 500,
       });
     }
+    /* c8 ignore stop */
     const resGetIdUserInserted = await data.app.executeQuery(data.app.db, "SELECT LAST_INSERT_ID() AS 'id';", []);
     // Error with the sql request
+    /* c8 ignore start */
     if (resGetIdUserInserted[0] || resGetIdUserInserted[1].length !== 1 || resGetIdUserInserted[1][0].id === 0) {
       console.log(resGetIdUserInserted[0]);
       return resolve({
@@ -149,6 +160,7 @@ async function postLoginADFS(data) {
         code: 500,
       });
     }
+    /* c8 ignore stop */
     const idNewUser = resGetIdUserInserted[1][0].id;
     const cookie = await require("../../functions/apiActions").saveNewCookie(data.app, { id: idNewUser, email: email });
 
@@ -161,6 +173,7 @@ async function postLoginADFS(data) {
     };
   }
   // Too much match with tables
+  /* c8 ignore start */
   if (dbRes[1].length > 1) {
     console.log("Login match with multiple users : " + email);
     return resolve({
@@ -168,6 +181,7 @@ async function postLoginADFS(data) {
       code: 500,
     });
   }
+  /* c8 ignore stop */
 
   const id = dbRes[1][0].id;
   if (dbRes[1][0].title !== title) {
@@ -185,6 +199,7 @@ async function postLoginADFS(data) {
   };
 }
 
+/* c8 ignore start */
 module.exports.startApi = startApi;
 async function startApi(app) {
   app.use(passport.initialize());
@@ -196,6 +211,7 @@ async function startApi(app) {
   app.post("/api/user/login/adfs/", async (req, res) => {
     try {
       const data = await require("../../functions/apiActions").prepareData(app, req, res);
+      data.myFabOpen = JSON.parse(fs.readFileSync(__dirname + "/../../data/serviceData.json")).myFabOpen;
       const result = await postLoginADFS(data);
       await require("../../functions/apiActions").sendResponse(req, res, result);
     } catch (error) {
@@ -212,3 +228,4 @@ async function startApi(app) {
     res.redirect(`${config.siteRoot}/auth/adfs/${id}`);
   });
 }
+/* c8 ignore stop */
